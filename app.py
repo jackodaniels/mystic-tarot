@@ -677,8 +677,10 @@ st.markdown(
 
     max-width: 1400px;
 
-    padding-top: 1.5rem;
-    padding-bottom: 3rem;
+    padding-top: 0.75rem;
+    padding-bottom: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 
@@ -1253,8 +1255,17 @@ st.markdown(
 @media (max-width: 900px) {
 
     .block-container {
-        max-width: 100% !important;
-        padding: 0.75rem 0.65rem 2rem !important;
+        max-width: none !important;
+        width: 100% !important;
+        padding: 0.35rem 0.35rem 1.5rem !important;
+    }
+
+    [data-testid="stAppViewContainer"] > .main {
+        width: 100% !important;
+    }
+
+    [data-testid="stAppViewContainer"] > .main > div {
+        width: 100% !important;
     }
 
     /* Let Streamlit columns wrap instead of forcing 8 cards
@@ -1274,11 +1285,17 @@ st.markdown(
         margin: 0 0 1rem 0 !important;
     }
 
+    .hero {
+        width: 100vw !important;
+        margin-left: calc(50% - 50vw) !important;
+        margin-right: calc(50% - 50vw) !important;
+    }
+
     .hero img {
-        width: 100% !important;
-        max-width: 100% !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
         height: auto !important;
-        border-radius: 10px !important;
+        border-radius: 0 !important;
         display: block !important;
     }
 
@@ -1323,9 +1340,16 @@ st.markdown(
 
 @media (max-width: 700px) {
 
-    /* Two cards per row on phones.
-       This applies to the 8-card Tarot deck and also keeps
-       the normal two-column form layout usable. */
+    /* Use almost the entire phone viewport. */
+    .block-container {
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+        padding-top: 0.25rem !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+
+    /* Two cards per row on phones. */
     [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
     [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
         flex: 0 0 calc(50% - 0.45rem) !important;
@@ -1362,8 +1386,10 @@ st.markdown(
 @media (max-width: 430px) {
 
     .block-container {
-        padding-left: 0.45rem !important;
-        padding-right: 0.45rem !important;
+        padding-left: 0.15rem !important;
+        padding-right: 0.15rem !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
     }
 
     /* Keep the two-card layout but use the available width efficiently. */
@@ -1893,7 +1919,9 @@ def render_flip_card(
         ".webp": "image/webp",
     }.get(front_ext, "image/jpeg")
 
-    rotation = "rotate(180deg)" if orientation == "Reversed" else "none"
+    # Keep the artwork upright. "Reversed" is represented by the
+    # orientation label/meaning rather than rotating the source artwork.
+    rotation = "none"
 
     html = f"""
     <style>
@@ -1940,7 +1968,7 @@ def render_flip_card(
         .back {{ transform:rotateY(0deg); }}
         /* Tarot face is hidden on the back side until the card flips. */
         .front {{ transform:rotateY(180deg); }}
-        .front img {{ transform:{rotation}; }}
+        .front img {{ transform:none; }}
         @keyframes flipIn {{
             from {{ transform:rotateY(0deg); }}
             to {{ transform:rotateY(180deg); }}
@@ -2477,28 +2505,13 @@ elif (
 
                     if image_path:
 
-                        if card["orientation"] == "Reversed":
-
-                            card_image = Image.open(
-                                image_path
-                            ).convert("RGB")
-
-                            card_image = card_image.rotate(
-                                180,
-                                expand=True,
-                            )
-
-                            st.image(
-                                card_image,
-                                use_container_width=True,
-                            )
-
-                        else:
-
-                            st.image(
-                                str(image_path),
-                                use_container_width=True,
-                            )
+                        # Always show the physical Tarot artwork upright.
+                        # Reversed is indicated by the orientation label and
+                        # uses the reversed meaning from the deck data.
+                        st.image(
+                            str(image_path),
+                            use_container_width=True,
+                        )
 
                     else:
 

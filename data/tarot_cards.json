@@ -1,0 +1,548 @@
+[
+  {
+    "id": 1,
+    "name": "The Fool",
+    "arcana": "Major Arcana",
+    "upright": "Beginnings, freedom, spontaneity",
+    "reversed": "Recklessness, fear of the unknown"
+  },
+  {
+    "id": 2,
+    "name": "The Magician",
+    "arcana": "Major Arcana",
+    "upright": "Manifestation, skill, initiative",
+    "reversed": "Manipulation, untapped potential"
+  },
+  {
+    "id": 3,
+    "name": "The High Priestess",
+    "arcana": "Major Arcana",
+    "upright": "Intuition, mystery, inner knowledge",
+    "reversed": "Secrets, blocked intuition"
+  },
+  {
+    "id": 4,
+    "name": "The Empress",
+    "arcana": "Major Arcana",
+    "upright": "Abundance, creativity, nurturing",
+    "reversed": "Creative block, dependence"
+  },
+  {
+    "id": 5,
+    "name": "The Emperor",
+    "arcana": "Major Arcana",
+    "upright": "Authority, structure, leadership",
+    "reversed": "Rigidity, control"
+  },
+  {
+    "id": 6,
+    "name": "The Hierophant",
+    "arcana": "Major Arcana",
+    "upright": "Tradition, teaching, institutions",
+    "reversed": "Restriction, unconventionality"
+  },
+  {
+    "id": 7,
+    "name": "The Lovers",
+    "arcana": "Major Arcana",
+    "upright": "Choice, partnership, alignment",
+    "reversed": "Disharmony, difficult choice"
+  },
+  {
+    "id": 8,
+    "name": "The Chariot",
+    "arcana": "Major Arcana",
+    "upright": "Willpower, progress, determination",
+    "reversed": "Lack of direction, loss of control"
+  },
+  {
+    "id": 9,
+    "name": "Strength",
+    "arcana": "Major Arcana",
+    "upright": "Courage, patience, inner strength",
+    "reversed": "Self-doubt, raw emotion"
+  },
+  {
+    "id": 10,
+    "name": "The Hermit",
+    "arcana": "Major Arcana",
+    "upright": "Reflection, wisdom, solitude",
+    "reversed": "Isolation, withdrawal"
+  },
+  {
+    "id": 11,
+    "name": "Wheel of Fortune",
+    "arcana": "Major Arcana",
+    "upright": "Change, cycles, turning point",
+    "reversed": "Resistance to change, setbacks"
+  },
+  {
+    "id": 12,
+    "name": "Justice",
+    "arcana": "Major Arcana",
+    "upright": "Fairness, truth, accountability",
+    "reversed": "Injustice, imbalance"
+  },
+  {
+    "id": 13,
+    "name": "The Hanged Man",
+    "arcana": "Major Arcana",
+    "upright": "Pause, surrender, new perspective",
+    "reversed": "Stalling, resistance"
+  },
+  {
+    "id": 14,
+    "name": "Death",
+    "arcana": "Major Arcana",
+    "upright": "Transformation, endings, renewal",
+    "reversed": "Resistance, inability to let go"
+  },
+  {
+    "id": 15,
+    "name": "Temperance",
+    "arcana": "Major Arcana",
+    "upright": "Balance, moderation, integration",
+    "reversed": "Imbalance, excess"
+  },
+  {
+    "id": 16,
+    "name": "The Devil",
+    "arcana": "Major Arcana",
+    "upright": "Attachments, temptation, material concerns",
+    "reversed": "Release, reclaiming power"
+  },
+  {
+    "id": 17,
+    "name": "The Tower",
+    "arcana": "Major Arcana",
+    "upright": "Sudden change, revelation, upheaval",
+    "reversed": "Avoided disruption, fear of change"
+  },
+  {
+    "id": 18,
+    "name": "The Star",
+    "arcana": "Major Arcana",
+    "upright": "Hope, renewal, inspiration",
+    "reversed": "Discouragement, loss of faith"
+  },
+  {
+    "id": 19,
+    "name": "The Moon",
+    "arcana": "Major Arcana",
+    "upright": "Uncertainty, intuition, dreams",
+    "reversed": "Confusion clearing, hidden fears"
+  },
+  {
+    "id": 20,
+    "name": "The Sun",
+    "arcana": "Major Arcana",
+    "upright": "Clarity, vitality, success",
+    "reversed": "Temporary pessimism, delayed joy"
+  },
+  {
+    "id": 21,
+    "name": "Judgement",
+    "arcana": "Major Arcana",
+    "upright": "Awakening, evaluation, calling",
+    "reversed": "Self-criticism, avoidance"
+  },
+  {
+    "id": 22,
+    "name": "The World",
+    "arcana": "Major Arcana",
+    "upright": "Completion, achievement, integration",
+    "reversed": "Incomplete cycle, delays"
+  },
+  {
+    "id": 23,
+    "name": "Ace of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Beginnings, potential, opportunity; passion, creativity, ambition",
+    "reversed": "Blocked potential, delay; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 24,
+    "name": "Two of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Balance, partnership, choice; passion, creativity, ambition",
+    "reversed": "Indecision, imbalance; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 25,
+    "name": "Three of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Growth, collaboration, expression; passion, creativity, ambition",
+    "reversed": "Lack of teamwork, stalled growth; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 26,
+    "name": "Four of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Stability, foundation, rest; passion, creativity, ambition",
+    "reversed": "Stagnation, instability; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 27,
+    "name": "Five of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Challenge, change, conflict; passion, creativity, ambition",
+    "reversed": "Recovery, conflict easing; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 28,
+    "name": "Six of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Progress, support, recognition; passion, creativity, ambition",
+    "reversed": "Setback, imbalance; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 29,
+    "name": "Seven of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Assessment, strategy, perseverance; passion, creativity, ambition",
+    "reversed": "Doubt, poor strategy; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 30,
+    "name": "Eight of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Movement, skill, momentum; passion, creativity, ambition",
+    "reversed": "Delay, scattered effort; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 31,
+    "name": "Nine of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Resilience, culmination, independence; passion, creativity, ambition",
+    "reversed": "Exhaustion, insecurity; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 32,
+    "name": "Ten of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Completion, responsibility, legacy; passion, creativity, ambition",
+    "reversed": "Burden, overload; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 33,
+    "name": "Page of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Learning, messages, curiosity; passion, creativity, ambition",
+    "reversed": "Immaturity, blocked message; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 34,
+    "name": "Knight of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Action, pursuit, momentum; passion, creativity, ambition",
+    "reversed": "Impulsiveness, lack of direction; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 35,
+    "name": "Queen of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Mastery, confidence, mature energy; passion, creativity, ambition",
+    "reversed": "Insecurity, emotional blockage; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 36,
+    "name": "King of Wands",
+    "arcana": "Minor Arcana",
+    "upright": "Leadership, mastery, authority; passion, creativity, ambition",
+    "reversed": "Controlling behavior, rigidity; blocked passion, creativity, ambition"
+  },
+  {
+    "id": 37,
+    "name": "Ace of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Beginnings, potential, opportunity; emotion, relationships, intuition",
+    "reversed": "Blocked potential, delay; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 38,
+    "name": "Two of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Balance, partnership, choice; emotion, relationships, intuition",
+    "reversed": "Indecision, imbalance; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 39,
+    "name": "Three of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Growth, collaboration, expression; emotion, relationships, intuition",
+    "reversed": "Lack of teamwork, stalled growth; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 40,
+    "name": "Four of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Stability, foundation, rest; emotion, relationships, intuition",
+    "reversed": "Stagnation, instability; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 41,
+    "name": "Five of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Challenge, change, conflict; emotion, relationships, intuition",
+    "reversed": "Recovery, conflict easing; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 42,
+    "name": "Six of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Progress, support, recognition; emotion, relationships, intuition",
+    "reversed": "Setback, imbalance; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 43,
+    "name": "Seven of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Assessment, strategy, perseverance; emotion, relationships, intuition",
+    "reversed": "Doubt, poor strategy; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 44,
+    "name": "Eight of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Movement, skill, momentum; emotion, relationships, intuition",
+    "reversed": "Delay, scattered effort; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 45,
+    "name": "Nine of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Resilience, culmination, independence; emotion, relationships, intuition",
+    "reversed": "Exhaustion, insecurity; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 46,
+    "name": "Ten of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Completion, responsibility, legacy; emotion, relationships, intuition",
+    "reversed": "Burden, overload; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 47,
+    "name": "Page of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Learning, messages, curiosity; emotion, relationships, intuition",
+    "reversed": "Immaturity, blocked message; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 48,
+    "name": "Knight of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Action, pursuit, momentum; emotion, relationships, intuition",
+    "reversed": "Impulsiveness, lack of direction; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 49,
+    "name": "Queen of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Mastery, confidence, mature energy; emotion, relationships, intuition",
+    "reversed": "Insecurity, emotional blockage; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 50,
+    "name": "King of Cups",
+    "arcana": "Minor Arcana",
+    "upright": "Leadership, mastery, authority; emotion, relationships, intuition",
+    "reversed": "Controlling behavior, rigidity; blocked emotion, relationships, intuition"
+  },
+  {
+    "id": 51,
+    "name": "Ace of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Beginnings, potential, opportunity; thought, communication, decisions",
+    "reversed": "Blocked potential, delay; blocked thought, communication, decisions"
+  },
+  {
+    "id": 52,
+    "name": "Two of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Balance, partnership, choice; thought, communication, decisions",
+    "reversed": "Indecision, imbalance; blocked thought, communication, decisions"
+  },
+  {
+    "id": 53,
+    "name": "Three of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Growth, collaboration, expression; thought, communication, decisions",
+    "reversed": "Lack of teamwork, stalled growth; blocked thought, communication, decisions"
+  },
+  {
+    "id": 54,
+    "name": "Four of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Stability, foundation, rest; thought, communication, decisions",
+    "reversed": "Stagnation, instability; blocked thought, communication, decisions"
+  },
+  {
+    "id": 55,
+    "name": "Five of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Challenge, change, conflict; thought, communication, decisions",
+    "reversed": "Recovery, conflict easing; blocked thought, communication, decisions"
+  },
+  {
+    "id": 56,
+    "name": "Six of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Progress, support, recognition; thought, communication, decisions",
+    "reversed": "Setback, imbalance; blocked thought, communication, decisions"
+  },
+  {
+    "id": 57,
+    "name": "Seven of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Assessment, strategy, perseverance; thought, communication, decisions",
+    "reversed": "Doubt, poor strategy; blocked thought, communication, decisions"
+  },
+  {
+    "id": 58,
+    "name": "Eight of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Movement, skill, momentum; thought, communication, decisions",
+    "reversed": "Delay, scattered effort; blocked thought, communication, decisions"
+  },
+  {
+    "id": 59,
+    "name": "Nine of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Resilience, culmination, independence; thought, communication, decisions",
+    "reversed": "Exhaustion, insecurity; blocked thought, communication, decisions"
+  },
+  {
+    "id": 60,
+    "name": "Ten of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Completion, responsibility, legacy; thought, communication, decisions",
+    "reversed": "Burden, overload; blocked thought, communication, decisions"
+  },
+  {
+    "id": 61,
+    "name": "Page of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Learning, messages, curiosity; thought, communication, decisions",
+    "reversed": "Immaturity, blocked message; blocked thought, communication, decisions"
+  },
+  {
+    "id": 62,
+    "name": "Knight of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Action, pursuit, momentum; thought, communication, decisions",
+    "reversed": "Impulsiveness, lack of direction; blocked thought, communication, decisions"
+  },
+  {
+    "id": 63,
+    "name": "Queen of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Mastery, confidence, mature energy; thought, communication, decisions",
+    "reversed": "Insecurity, emotional blockage; blocked thought, communication, decisions"
+  },
+  {
+    "id": 64,
+    "name": "King of Swords",
+    "arcana": "Minor Arcana",
+    "upright": "Leadership, mastery, authority; thought, communication, decisions",
+    "reversed": "Controlling behavior, rigidity; blocked thought, communication, decisions"
+  },
+  {
+    "id": 65,
+    "name": "Ace of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Beginnings, potential, opportunity; work, money, resources, practical life",
+    "reversed": "Blocked potential, delay; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 66,
+    "name": "Two of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Balance, partnership, choice; work, money, resources, practical life",
+    "reversed": "Indecision, imbalance; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 67,
+    "name": "Three of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Growth, collaboration, expression; work, money, resources, practical life",
+    "reversed": "Lack of teamwork, stalled growth; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 68,
+    "name": "Four of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Stability, foundation, rest; work, money, resources, practical life",
+    "reversed": "Stagnation, instability; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 69,
+    "name": "Five of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Challenge, change, conflict; work, money, resources, practical life",
+    "reversed": "Recovery, conflict easing; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 70,
+    "name": "Six of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Progress, support, recognition; work, money, resources, practical life",
+    "reversed": "Setback, imbalance; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 71,
+    "name": "Seven of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Assessment, strategy, perseverance; work, money, resources, practical life",
+    "reversed": "Doubt, poor strategy; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 72,
+    "name": "Eight of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Movement, skill, momentum; work, money, resources, practical life",
+    "reversed": "Delay, scattered effort; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 73,
+    "name": "Nine of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Resilience, culmination, independence; work, money, resources, practical life",
+    "reversed": "Exhaustion, insecurity; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 74,
+    "name": "Ten of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Completion, responsibility, legacy; work, money, resources, practical life",
+    "reversed": "Burden, overload; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 75,
+    "name": "Page of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Learning, messages, curiosity; work, money, resources, practical life",
+    "reversed": "Immaturity, blocked message; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 76,
+    "name": "Knight of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Action, pursuit, momentum; work, money, resources, practical life",
+    "reversed": "Impulsiveness, lack of direction; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 77,
+    "name": "Queen of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Mastery, confidence, mature energy; work, money, resources, practical life",
+    "reversed": "Insecurity, emotional blockage; blocked work, money, resources, practical life"
+  },
+  {
+    "id": 78,
+    "name": "King of Pentacles",
+    "arcana": "Minor Arcana",
+    "upright": "Leadership, mastery, authority; work, money, resources, practical life",
+    "reversed": "Controlling behavior, rigidity; blocked work, money, resources, practical life"
+  }
+]

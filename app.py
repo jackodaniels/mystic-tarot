@@ -1383,6 +1383,9 @@ def reveal_tarot():
                 "position":
                     position,
 
+                "pool_index":
+                    index,
+
                 "name":
                     card["name"],
 
@@ -2048,74 +2051,101 @@ elif (
 
     st.write("")
 
-    cards = (
-        st.session_state.reading
-    )
+    cards = st.session_state.reading
 
-    columns = st.columns(
-        len(cards),
-        gap="large",
-    )
+    # Keep the original 8-card deck positions.
+    # Selected cards are revealed in their original position;
+    # unselected cards remain face-down.
+    revealed_by_index = {
+        card["pool_index"]: card
+        for card in cards
+    }
 
-    for column, card in zip(
-        columns,
-        cards,
+    pool = st.session_state.pool
+
+    st.markdown("### 🃏 Your selected cards")
+    st.caption("Your selected cards have been flipped in place. The other cards remain face-down.")
+
+    # Desktop: 8 columns. Streamlit automatically wraps on smaller screens.
+    columns = st.columns(8, gap="small")
+
+    for number, (column, card_index) in enumerate(
+        zip(columns, pool),
+        start=1,
     ):
 
         with column:
 
-            image_path = get_card_image(
-                card["name"]
-            )
+            revealed = card_index in revealed_by_index
 
-            with st.container(border=True):
+            if revealed:
 
-                st.markdown(
-                    f"### {card['position']}"
-                )
+                card = revealed_by_index[card_index]
+                image_path = get_card_image(card["name"])
 
-                if image_path:
+                with st.container(border=True):
 
-                    if card["orientation"] == "Reversed":
+                    st.caption(f"Card {number}")
 
-                        card_image = Image.open(
-                            image_path
-                        ).convert("RGB")
+                    if image_path:
 
-                        card_image = card_image.rotate(
-                            180,
-                            expand=True
+                        if card["orientation"] == "Reversed":
+
+                            card_image = Image.open(
+                                image_path
+                            ).convert("RGB")
+
+                            card_image = card_image.rotate(
+                                180,
+                                expand=True,
+                            )
+
+                            st.image(
+                                card_image,
+                                use_container_width=True,
+                            )
+
+                        else:
+
+                            st.image(
+                                str(image_path),
+                                use_container_width=True,
+                            )
+
+                    else:
+
+                        st.error(
+                            f"Image not found for {card['name']}"
                         )
 
+                    st.markdown(
+                        f"**{card['name']}**"
+                    )
+
+                    st.caption(
+                        f"✦ {card['orientation']} ✦"
+                    )
+
+            else:
+
+                with st.container(border=True):
+
+                    st.caption(f"Card {number}")
+
+                    if card_back := get_card_back():
+
                         st.image(
-                            card_image,
+                            str(card_back),
                             use_container_width=True,
                         )
 
                     else:
 
-                        st.image(
-                            str(image_path),
-                            use_container_width=True,
+                        st.warning(
+                            "Card back not found."
                         )
 
-                else:
-
-                    st.error(
-                        f"Image not found for {card['name']}"
-                    )
-
-                st.markdown(
-                    f"**{card['name']}**"
-                )
-
-                st.caption(
-                    f"✦ {card['orientation']} ✦"
-                )
-
-                st.write(
-                    card["meaning"]
-                )
+                    st.caption("Face-down")
 
     # ========================================================
     # INTERPRETATION
@@ -2163,59 +2193,24 @@ elif (
 
     st.divider()
 
-    st.markdown(
-        "### 💬 How to interpret this with ChatGPT"
-    )
+    st.markdown("### 💬 Explain this with ChatGPT")
 
     st.write(
-        "Copy the text below, open ChatGPT, "
-        "paste it, and send it."
+        "Click the copy button, open ChatGPT, "
+        "paste the prompt, and send it. 🤖"
     )
 
-    with st.container(border=True):
+    tarot_prompt = create_tarot_chatgpt_prompt()
 
-        st.markdown(
-            "#### 🤖 Steps"
-        )
-
-        st.write(
-            "1️⃣ Click inside the box below."
-        )
-
-        st.write(
-            "2️⃣ Press **Ctrl+A**."
-        )
-
-        st.write(
-            "3️⃣ Press **Ctrl+C**."
-        )
-
-        st.write(
-            "4️⃣ Open ChatGPT."
-        )
-
-        st.write(
-            "5️⃣ Press **Ctrl+V**."
-        )
-
-        st.write(
-            "6️⃣ Send the message."
-        )
-
-    tarot_prompt = (
-        create_tarot_chatgpt_prompt()
-    )
-
-    st.text_area(
-        "📋 Copy-ready ChatGPT prompt",
-        value=tarot_prompt,
-        height=400,
+    # st.code provides a built-in one-click copy button.
+    st.code(
+        tarot_prompt,
+        language="text",
     )
 
     st.info(
-        "ChatGPT can simplify the symbolic "
-        "interpretation, but Tarot should not "
-        "be treated as a guaranteed prediction."
+        "📋 Click the copy icon on the prompt above, "
+        "then paste it into ChatGPT."
     )
 
     st.divider()
@@ -2318,59 +2313,24 @@ elif (
 
     st.divider()
 
-    st.markdown(
-        "### 💬 How to interpret this with ChatGPT"
-    )
+    st.markdown("### 💬 Explain this with ChatGPT")
 
     st.write(
-        "Copy the horoscope below, open ChatGPT, "
-        "paste it, and ask ChatGPT to explain "
-        "it in simple language."
+        "Click the copy button, open ChatGPT, "
+        "paste the prompt, and send it. 🤖"
     )
 
-    with st.container(border=True):
+    horoscope_prompt = create_horoscope_chatgpt_prompt()
 
-        st.markdown(
-            "#### 🤖 Steps"
-        )
-
-        st.write(
-            "1️⃣ Click inside the box."
-        )
-
-        st.write(
-            "2️⃣ Press **Ctrl+A**."
-        )
-
-        st.write(
-            "3️⃣ Press **Ctrl+C**."
-        )
-
-        st.write(
-            "4️⃣ Open ChatGPT."
-        )
-
-        st.write(
-            "5️⃣ Press **Ctrl+V**."
-        )
-
-        st.write(
-            "6️⃣ Send the message."
-        )
-
-    horoscope_prompt = (
-        create_horoscope_chatgpt_prompt()
-    )
-
-    st.text_area(
-        "📋 Copy-ready ChatGPT prompt",
-        value=horoscope_prompt,
-        height=400,
+    # st.code provides a built-in one-click copy button.
+    st.code(
+        horoscope_prompt,
+        language="text",
     )
 
     st.info(
-        "ChatGPT can explain the symbolic "
-        "themes in simpler language."
+        "📋 Click the copy icon on the prompt above, "
+        "then paste it into ChatGPT."
     )
 
     st.divider()

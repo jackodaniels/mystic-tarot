@@ -2,6 +2,7 @@ import base64
 import json
 import random
 import re
+from datetime import date, datetime
 from pathlib import Path
 
 import streamlit as st
@@ -19,14 +20,13 @@ st.set_page_config(
 
 
 # ============================================================
-# PATHS
+# PROJECT PATHS
 # ============================================================
 
 BASE_DIR = Path(__file__).parent
 
 DATA_FILE = BASE_DIR / "data" / "tarot_cards.json"
 
-# Recommended for GitHub / Streamlit Cloud
 IMAGE_DIR = BASE_DIR / "assets" / "tarot"
 
 # Local Windows fallback
@@ -34,7 +34,12 @@ WINDOWS_IMAGE_DIR = Path(
     r"C:\Users\HDPlanco\Downloads\tarot"
 )
 
-CARD_BACK_NAME = "berlin-card-back.png"
+CARD_BACK_FILENAMES = [
+    "berlin-card-back.png",
+    "berlin-card-back.jpg",
+    "berlin-card-back.jpeg",
+    "berlin-card-back.webp",
+]
 
 
 # ============================================================
@@ -44,7 +49,7 @@ CARD_BACK_NAME = "berlin-card-back.png"
 if not DATA_FILE.exists():
 
     st.error(
-        f"Tarot deck file not found:\n\n{DATA_FILE}"
+        f"Tarot data file was not found:\n\n{DATA_FILE}"
     )
 
     st.stop()
@@ -58,17 +63,19 @@ try:
         )
     )
 
-except Exception as e:
+except Exception as error:
 
     st.error(
-        f"Unable to load tarot_cards.json:\n\n{e}"
+        "Unable to load tarot_cards.json."
     )
+
+    st.exception(error)
 
     st.stop()
 
 
 # ============================================================
-# FIND IMAGE DIRECTORY
+# DETERMINE IMAGE DIRECTORY
 # ============================================================
 
 if IMAGE_DIR.exists():
@@ -90,7 +97,7 @@ else:
 
 def normalize_name(value):
 
-    value = value.lower().strip()
+    value = str(value).lower().strip()
 
     value = value.replace(
         "_",
@@ -114,52 +121,43 @@ def normalize_name(value):
 
 def extract_card_name_from_filename(filename):
 
-    """
-    Converts filenames such as:
+    name = filename
 
-    03-The-Empress-Tarot-card-img-182x300-1.jpg.jpeg
-
-    into:
-
-    the-empress
-    """
-
-    stem = filename
-
-    # Remove extension(s)
-    stem = re.sub(
+    # Remove extension
+    name = re.sub(
         r"\.(jpeg|jpg|png|webp)$",
         "",
-        stem,
+        name,
         flags=re.IGNORECASE
     )
 
-    stem = re.sub(
+    # Handle filenames such as .jpg.jpeg
+    name = re.sub(
         r"\.(jpeg|jpg|png|webp)$",
         "",
-        stem,
+        name,
         flags=re.IGNORECASE
     )
 
-    # Remove leading number
-    stem = re.sub(
+    # Remove leading card number
+    name = re.sub(
         r"^\d+-",
         "",
-        stem
+        name
     )
 
-    # Remove image suffix
-    stem = re.sub(
+    # Remove common suffix
+    name = re.sub(
         r"-tarot-card-img.*$",
         "",
-        stem,
+        name,
         flags=re.IGNORECASE
     )
 
-    return normalize_name(stem)
+    return normalize_name(name)
 
 
-def build_image_map():
+def build_card_image_map():
 
     image_map = {}
 
@@ -182,20 +180,20 @@ def build_image_map():
             ACTIVE_IMAGE_DIR.glob(extension)
         )
 
-    for file in files:
+    for image_file in files:
 
         key = extract_card_name_from_filename(
-            file.name
+            image_file.name
         )
 
         if key:
 
-            image_map[key] = file
+            image_map[key] = image_file
 
     return image_map
 
 
-CARD_IMAGES = build_image_map()
+CARD_IMAGES = build_card_image_map()
 
 
 def get_card_image(card_name):
@@ -204,37 +202,36 @@ def get_card_image(card_name):
         card_name
     )
 
-    return CARD_IMAGES.get(
-        key
-    )
+    # Exact match
+    if key in CARD_IMAGES:
+
+        return CARD_IMAGES[key]
+
+    # Flexible matching
+    for image_key, image_path in CARD_IMAGES.items():
+
+        if (
+            image_key in key
+            or key in image_key
+        ):
+
+            return image_path
+
+    return None
 
 
 def get_card_back():
 
-    path = (
-        ACTIVE_IMAGE_DIR
-        / CARD_BACK_NAME
-    )
+    for filename in CARD_BACK_FILENAMES:
 
-    if path.exists():
-
-        return path
-
-    # Try other common formats
-    for filename in [
-        "berlin-card-back.jpg",
-        "berlin-card-back.jpeg",
-        "berlin-card-back.webp",
-    ]:
-
-        alternative = (
+        path = (
             ACTIVE_IMAGE_DIR
             / filename
         )
 
-        if alternative.exists():
+        if path.exists():
 
-            return alternative
+            return path
 
     return None
 
@@ -244,11 +241,22 @@ def get_card_back():
 # ============================================================
 
 CATEGORIES = {
-    "💼 Career": "career",
-    "❤️ Love": "love",
-    "💰 Money": "money",
-    "🌱 Personal Growth": "growth",
-    "🔮 Future": "future",
+
+    "💼 Career":
+        "career",
+
+    "❤️ Love":
+        "love",
+
+    "💰 Money":
+        "money",
+
+    "🌱 Personal Growth":
+        "growth",
+
+    "🔮 Future":
+        "future",
+
 }
 
 
@@ -280,478 +288,285 @@ SPREADS = {
 
 
 # ============================================================
-# CUSTOM CSS
+# ZODIAC
 # ============================================================
 
-st.markdown(
-    """
-    <style>
+ZODIAC_SIGNS = [
+
+    {
+        "name": "♑ Capricorn",
+        "symbol": "♑",
+        "start": (12, 22),
+        "end": (1, 19),
+        "description":
+            "Discipline, ambition, responsibility, structure, and long-term goals.",
+    },
+
+    {
+        "name": "♒ Aquarius",
+        "symbol": "♒",
+        "start": (1, 20),
+        "end": (2, 18),
+        "description":
+            "Independence, originality, ideas, community, and unconventional thinking.",
+    },
+
+    {
+        "name": "♓ Pisces",
+        "symbol": "♓",
+        "start": (2, 19),
+        "end": (3, 20),
+        "description":
+            "Sensitivity, imagination, intuition, compassion, and emotional depth.",
+    },
+
+    {
+        "name": "♈ Aries",
+        "symbol": "♈",
+        "start": (3, 21),
+        "end": (4, 19),
+        "description":
+            "Initiative, courage, action, independence, and directness.",
+    },
+
+    {
+        "name": "♉ Taurus",
+        "symbol": "♉",
+        "start": (4, 20),
+        "end": (5, 20),
+        "description":
+            "Stability, patience, practicality, comfort, and persistence.",
+    },
+
+    {
+        "name": "♊ Gemini",
+        "symbol": "♊",
+        "start": (5, 21),
+        "end": (6, 20),
+        "description":
+            "Curiosity, communication, adaptability, learning, and variety.",
+    },
+
+    {
+        "name": "♋ Cancer",
+        "symbol": "♋",
+        "start": (6, 21),
+        "end": (7, 22),
+        "description":
+            "Emotional connection, care, intuition, home, and security.",
+    },
+
+    {
+        "name": "♌ Leo",
+        "symbol": "♌",
+        "start": (7, 23),
+        "end": (8, 22),
+        "description":
+            "Confidence, creativity, expression, generosity, and recognition.",
+    },
+
+    {
+        "name": "♍ Virgo",
+        "symbol": "♍",
+        "start": (8, 23),
+        "end": (9, 22),
+        "description":
+            "Organization, analysis, service, precision, and practical improvement.",
+    },
+
+    {
+        "name": "♎ Libra",
+        "symbol": "♎",
+        "start": (9, 23),
+        "end": (10, 22),
+        "description":
+            "Balance, relationships, diplomacy, beauty, and fairness.",
+    },
+
+    {
+        "name": "♏ Scorpio",
+        "symbol": "♏",
+        "start": (10, 23),
+        "end": (11, 21),
+        "description":
+            "Intensity, transformation, determination, privacy, and depth.",
+    },
+
+    {
+        "name": "♐ Sagittarius",
+        "symbol": "♐",
+        "start": (11, 22),
+        "end": (12, 21),
+        "description":
+            "Exploration, optimism, freedom, learning, and broader perspective.",
+    },
 
-    /* =======================================================
-       MAIN APP
-       ======================================================= */
+]
 
-    .stApp {
 
-        background:
-            radial-gradient(
-                circle at top,
-                #1b1033 0%,
-                #0b0717 45%,
-                #05030b 100%
-            );
+def get_zodiac_sign(birthday):
 
-        color: #f5efff;
-    }
+    month = birthday.month
+    day = birthday.day
 
+    for sign in ZODIAC_SIGNS:
 
-    .block-container {
+        start_month, start_day = sign["start"]
+        end_month, end_day = sign["end"]
 
-        max-width: 1400px;
+        # Capricorn crosses the year boundary
+        if start_month == 12:
 
-        padding-top: 1.5rem;
-        padding-bottom: 3rem;
-    }
+            if (
+                (month == 12 and day >= start_day)
+                or
+                (month == 1 and day <= end_day)
+            ):
 
+                return sign
 
-    /* =======================================================
-       HEADER
-       ======================================================= */
+        else:
 
-    .hero {
+            if (
+                (month == start_month and day >= start_day)
+                or
+                (month == end_month and day <= end_day)
+                or
+                (
+                    start_month < month < end_month
+                )
+            ):
 
-        text-align: center;
+                return sign
 
-        padding:
-            1rem
-            1rem
-            1.8rem;
+    return ZODIAC_SIGNS[0]
 
-        border-bottom:
-            1px solid
-            rgba(196, 157, 255, .22);
 
-        margin-bottom: 1.5rem;
-    }
+# ============================================================
+# HOROSCOPE CONTENT
+# ============================================================
 
+HOROSCOPE_THEMES = {
 
-    .hero h1 {
+    "career": {
 
-        font-size: 3.1rem;
+        "title":
+            "💼 Career",
 
-        margin:
-            0;
+        "themes": [
 
-        letter-spacing:
-            .03em;
+            "Focus on priorities rather than trying to solve everything at once.",
 
-        background:
-            linear-gradient(
-                90deg,
-                #d9b7ff,
-                #ffffff,
-                #c59cff
-            );
+            "A practical conversation may help clarify your next step.",
 
-        -webkit-background-clip:
-            text;
+            "Review your current goals and decide which one deserves the most attention.",
 
-        -webkit-text-fill-color:
-            transparent;
-    }
+            "Consistency may be more useful than rushing into a new direction.",
 
+            "Look for opportunities to improve a skill or strengthen your professional position.",
 
-    .hero p {
+        ],
+    },
 
-        color:
-            #aaa0bd;
+    "love": {
 
-        font-size:
-            1.05rem;
+        "title":
+            "❤️ Love & Relationships",
 
-        margin-top:
-            .6rem;
-    }
+        "themes": [
 
+            "Clear communication can help reduce misunderstandings.",
 
-    /* =======================================================
-       SECTIONS
-       ======================================================= */
+            "Pay attention to what you need as well as what others need.",
 
-    .section {
+            "A calm conversation may reveal something important about a relationship.",
 
-        color:
-            #e1d5f5;
+            "Give relationships room for honesty, boundaries, and mutual respect.",
 
-        font-weight:
-            800;
+            "If you are single, focus on the qualities you genuinely value in a connection.",
 
-        margin:
-            1.2rem
-            0
-            .7rem;
+        ],
+    },
 
-        font-size:
-            1.3rem;
-    }
+    "money": {
 
+        "title":
+            "💰 Money",
 
-    /* =======================================================
-       SETUP BOX
-       ======================================================= */
+        "themes": [
 
-    .setup-box {
+            "Review your spending and prioritize practical financial decisions.",
 
-        border:
-            1px solid
-            rgba(182, 156, 255, .28);
+            "Avoid making financial decisions purely from emotion or pressure.",
 
-        border-radius:
-            18px;
+            "A small improvement in financial organization can have a useful effect over time.",
 
-        padding:
-            20px;
+            "Consider which expenses are necessary and which can be reduced.",
 
-        background:
-            linear-gradient(
-                145deg,
-                rgba(35, 23, 60, .88),
-                rgba(13, 8, 25, .88)
-            );
+            "Focus on stability and informed choices rather than quick results.",
 
-        box-shadow:
-            0 15px 40px
-            rgba(0, 0, 0, .30);
-    }
+        ],
+    },
 
+    "growth": {
 
-    /* =======================================================
-       CARD SELECTION
-       ======================================================= */
+        "title":
+            "🌱 Personal Growth",
 
-    .selection-info {
+        "themes": [
 
-        text-align:
-            center;
+            "Give yourself permission to change your approach when something is no longer working.",
 
-        color:
-            #bcb1ce;
+            "Reflection can help you recognize patterns that deserve attention.",
 
-        margin-bottom:
-            1rem;
-    }
+            "Set one realistic goal and take a concrete step toward it.",
 
+            "Protect time for rest, learning, and activities that help you reconnect with yourself.",
 
-    .selection-card {
+            "Growth does not always require a dramatic change; small consistent steps matter.",
 
-        text-align:
-            center;
+        ],
+    },
 
-        padding:
-            6px;
+}
 
-        border-radius:
-            18px;
 
-        background:
-            linear-gradient(
-                145deg,
-                rgba(31, 20, 54, .92),
-                rgba(11, 7, 22, .95)
-            );
+def generate_horoscope(sign, birthday):
 
-        border:
-            1px solid
-            rgba(255, 255, 255, .10);
+    # Deterministic daily seed based on date + birthday + sign
+    today = date.today()
 
-        box-shadow:
-            0 10px 30px
-            rgba(0, 0, 0, .30);
+    seed_text = (
+        f"{today.isoformat()}-"
+        f"{birthday.isoformat()}-"
+        f"{sign['name']}"
+    )
 
-        transition:
-            all .2s ease;
-    }
+    rng = random.Random(
+        seed_text
+    )
 
+    selected = {}
 
-    .selection-card:hover {
+    for category, data in HOROSCOPE_THEMES.items():
 
-        transform:
-            translateY(-5px);
+        selected[category] = rng.choice(
+            data["themes"]
+        )
 
-        border-color:
-            rgba(193, 155, 255, .65);
-
-        box-shadow:
-            0 15px 35px
-            rgba(113, 65, 180, .25);
-    }
-
-
-    .selected-card {
-
-        border:
-            2px solid
-            #c59cff;
-
-        box-shadow:
-            0 0 25px
-            rgba(197, 156, 255, .55);
-    }
-
-
-    .card-number {
-
-        text-align:
-            center;
-
-        color:
-            #bda9d7;
-
-        font-size:
-            .85rem;
-
-        margin-top:
-            5px;
-
-        letter-spacing:
-            .08em;
-    }
-
-
-    /* =======================================================
-       REVEALED CARDS
-       ======================================================= */
-
-    .reading-card {
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(34, 22, 57, .96),
-                rgba(10, 7, 19, .97)
-            );
-
-        border:
-            1px solid
-            rgba(201, 165, 255, .28);
-
-        border-radius:
-            20px;
-
-        padding:
-            16px;
-
-        text-align:
-            center;
-
-        min-height:
-            560px;
-
-        box-shadow:
-            0 18px 45px
-            rgba(0, 0, 0, .35);
-    }
-
-
-    .reading-position {
-
-        color:
-            #d8c8ec;
-
-        font-size:
-            .83rem;
-
-        font-weight:
-            700;
-
-        text-transform:
-            uppercase;
-
-        letter-spacing:
-            .08em;
-
-        margin-bottom:
-            10px;
-    }
-
-
-    .reading-card-title {
-
-        font-size:
-            1.35rem;
-
-        font-weight:
-            800;
-
-        margin-top:
-            10px;
-
-        color:
-            #f3eaff;
-    }
-
-
-    .orientation {
-
-        display:
-            inline-block;
-
-        margin-top:
-            8px;
-
-        padding:
-            5px 13px;
-
-        border-radius:
-            20px;
-
-        color:
-            #d8c1ff;
-
-        background:
-            rgba(142, 95, 214, .16);
-
-        border:
-            1px solid
-            rgba(194, 155, 255, .25);
-
-        font-size:
-            .78rem;
-
-        font-weight:
-            700;
-
-        text-transform:
-            uppercase;
-
-        letter-spacing:
-            .08em;
-    }
-
-
-    .meaning {
-
-        color:
-            #c7bfd2;
-
-        font-size:
-            .94rem;
-
-        line-height:
-            1.6;
-
-        margin-top:
-            14px;
-
-        text-align:
-            left;
-    }
-
-
-    /* =======================================================
-       CHATGPT BOX
-       ======================================================= */
-
-    .instruction-box {
-
-        border:
-            1px solid
-            rgba(182, 156, 255, .28);
-
-        border-radius:
-            18px;
-
-        padding:
-            20px;
-
-        background:
-            rgba(30, 20, 51, .65);
-
-        margin-top:
-            1rem;
-    }
-
-
-    .instruction-box h3 {
-
-        margin-top:
-            0;
-
-        color:
-            #eee5ff;
-    }
-
-
-    .chatgpt-prompt {
-
-        border-left:
-            3px solid
-            #b69cff;
-
-        padding-left:
-            14px;
-
-        color:
-            #cfc6dd;
-
-        font-style:
-            italic;
-    }
-
-
-    /* =======================================================
-       FOOTER
-       ======================================================= */
-
-    .footer {
-
-        text-align:
-            center;
-
-        color:
-            #71677d;
-
-        margin-top:
-            2.5rem;
-
-        font-size:
-            .85rem;
-    }
-
-
-    /* =======================================================
-       MOBILE
-       ======================================================= */
-
-    @media (max-width: 768px) {
-
-        .hero h1 {
-
-            font-size:
-                2rem;
-        }
-
-        .reading-card {
-
-            min-height:
-                auto;
-        }
-
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+    return selected
 
 
 # ============================================================
 # SESSION STATE
 # ============================================================
 
-def init():
+def initialize_session():
 
     defaults = {
+
+        "mode":
+            "Tarot Reading",
 
         "phase":
             "setup",
@@ -774,6 +589,18 @@ def init():
         "spread":
             "3 Cards",
 
+        "name":
+            "",
+
+        "birthday":
+            None,
+
+        "zodiac":
+            None,
+
+        "horoscope":
+            {},
+
         "error":
             "",
 
@@ -786,48 +613,683 @@ def init():
             st.session_state[key] = value
 
 
-init()
+initialize_session()
 
 
 # ============================================================
-# START READING
+# CUSTOM CSS
 # ============================================================
 
-def start_reading():
+st.markdown(
+    """
+<style>
+
+/* ============================================================
+   APP
+   ============================================================ */
+
+.stApp {
+
+    background:
+        radial-gradient(
+            circle at top,
+            #1d1235 0%,
+            #0b0717 45%,
+            #05030b 100%
+        );
+
+    color: #f4edff;
+}
+
+
+.block-container {
+
+    max-width: 1400px;
+
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+}
+
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.hero {
+
+    text-align: center;
+
+    padding:
+        1rem
+        1rem
+        1.7rem;
+
+    margin-bottom:
+        1.5rem;
+
+    border-bottom:
+        1px solid
+        rgba(194, 155, 255, .25);
+}
+
+
+.hero h1 {
+
+    font-size:
+        3rem;
+
+    font-weight:
+        800;
+
+    margin:
+        0;
+
+    letter-spacing:
+        .03em;
+
+    background:
+        linear-gradient(
+            90deg,
+            #d7b5ff,
+            #ffffff,
+            #c89eff
+        );
+
+    -webkit-background-clip:
+        text;
+
+    -webkit-text-fill-color:
+        transparent;
+}
+
+
+.hero-subtitle {
+
+    color:
+        #aaa0bd;
+
+    font-size:
+        1.05rem;
+
+    margin-top:
+        .6rem;
+}
+
+
+/* ============================================================
+   MODE TABS
+   ============================================================ */
+
+.mode-description {
+
+    text-align:
+        center;
+
+    color:
+        #aaa0bd;
+
+    margin-bottom:
+        1rem;
+}
+
+
+/* ============================================================
+   SECTION
+   ============================================================ */
+
+.section-title {
+
+    font-size:
+        1.3rem;
+
+    font-weight:
+        800;
+
+    color:
+        #e6d9f8;
+
+    margin-top:
+        1.2rem;
+
+    margin-bottom:
+        .8rem;
+}
+
+
+/* ============================================================
+   INFO BOX
+   ============================================================ */
+
+.info-box {
+
+    border:
+        1px solid
+        rgba(182, 156, 255, .25);
+
+    border-radius:
+        16px;
+
+    padding:
+        18px;
+
+    background:
+        rgba(28, 18, 49, .65);
+
+    margin-top:
+        1rem;
+}
+
+
+.info-title {
+
+    font-size:
+        1.15rem;
+
+    font-weight:
+        800;
+
+    color:
+        #eee5ff;
+
+    margin-bottom:
+        .6rem;
+}
+
+
+.info-text {
+
+    color:
+        #c9bfd5;
+
+    line-height:
+        1.6;
+}
+
+
+/* ============================================================
+   CARD BACK
+   ============================================================ */
+
+.card-back-wrapper {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(40, 25, 65, .9),
+            rgba(10, 6, 20, .95)
+        );
+
+    border:
+        1px solid
+        rgba(191, 151, 255, .22);
+
+    border-radius:
+        16px;
+
+    padding:
+        6px;
+
+    box-shadow:
+        0 12px 30px
+        rgba(0, 0, 0, .4);
+
+    transition:
+        all .2s ease;
+}
+
+
+.card-back-wrapper:hover {
+
+    transform:
+        translateY(-5px);
+
+    border-color:
+        rgba(202, 165, 255, .65);
+
+    box-shadow:
+        0 18px 38px
+        rgba(119, 68, 190, .28);
+}
+
+
+.selected-wrapper {
+
+    background:
+        linear-gradient(
+            145deg,
+            #35205d,
+            #130b25
+        );
+
+    border:
+        2px solid
+        #c69cff;
+
+    border-radius:
+        16px;
+
+    padding:
+        5px;
+
+    box-shadow:
+        0 0 28px
+        rgba(193, 150, 255, .55);
+}
+
+
+.card-number {
+
+    text-align:
+        center;
+
+    color:
+        #bcaed0;
+
+    font-size:
+        .72rem;
+
+    letter-spacing:
+        .08em;
+
+    margin-top:
+        3px;
+}
+
+
+/* ============================================================
+   READING CARD
+   ============================================================ */
+
+.reading-card {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(35, 23, 58, .97),
+            rgba(10, 7, 19, .98)
+        );
+
+    border:
+        1px solid
+        rgba(198, 161, 255, .30);
+
+    border-radius:
+        20px;
+
+    padding:
+        16px;
+
+    text-align:
+        center;
+
+    box-shadow:
+        0 18px 45px
+        rgba(0, 0, 0, .4);
+}
+
+
+.reading-position {
+
+    color:
+        #d9c8ec;
+
+    font-size:
+        .78rem;
+
+    font-weight:
+        800;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        .08em;
+
+    margin-bottom:
+        10px;
+}
+
+
+.reading-card-title {
+
+    color:
+        #f4eaff;
+
+    font-size:
+        1.3rem;
+
+    font-weight:
+        800;
+
+    margin-top:
+        10px;
+}
+
+
+.orientation {
+
+    display:
+        inline-block;
+
+    margin-top:
+        8px;
+
+    padding:
+        5px 13px;
+
+    border-radius:
+        20px;
+
+    border:
+        1px solid
+        rgba(195, 157, 255, .30);
+
+    background:
+        rgba(134, 87, 207, .18);
+
+    color:
+        #d9c0ff;
+
+    font-size:
+        .75rem;
+
+    font-weight:
+        800;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        .08em;
+}
+
+
+.meaning {
+
+    color:
+        #c8bfd2;
+
+    font-size:
+        .92rem;
+
+    line-height:
+        1.6;
+
+    margin-top:
+        12px;
+
+    text-align:
+        left;
+}
+
+
+/* ============================================================
+   HOROSCOPE
+   ============================================================ */
+
+.zodiac-card {
+
+    text-align:
+        center;
+
+    padding:
+        25px;
+
+    border-radius:
+        20px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(45, 26, 73, .95),
+            rgba(12, 7, 23, .98)
+        );
+
+    border:
+        1px solid
+        rgba(202, 165, 255, .30);
+
+    box-shadow:
+        0 18px 45px
+        rgba(0, 0, 0, .35);
+
+    margin:
+        1rem 0;
+}
+
+
+.zodiac-symbol {
+
+    font-size:
+        4rem;
+
+    margin-bottom:
+        .5rem;
+}
+
+
+.zodiac-name {
+
+    font-size:
+        2rem;
+
+    font-weight:
+        800;
+
+    color:
+        #eadbff;
+}
+
+
+.zodiac-description {
+
+    color:
+        #bcb1ca;
+
+    margin-top:
+        .5rem;
+
+    line-height:
+        1.6;
+}
+
+
+.horoscope-section {
+
+    border:
+        1px solid
+        rgba(182, 156, 255, .22);
+
+    border-radius:
+        16px;
+
+    padding:
+        18px;
+
+    margin:
+        1rem 0;
+
+    background:
+        rgba(28, 18, 49, .55);
+}
+
+
+.horoscope-section h3 {
+
+    margin-top:
+        0;
+
+    color:
+        #eadcff;
+}
+
+
+.horoscope-section p {
+
+    color:
+        #c9bfd5;
+
+    line-height:
+        1.6;
+}
+
+
+/* ============================================================
+   CHATGPT
+   ============================================================ */
+
+.chat-box {
+
+    border:
+        1px solid
+        rgba(182, 156, 255, .28);
+
+    border-radius:
+        18px;
+
+    padding:
+        20px;
+
+    background:
+        rgba(30, 20, 52, .65);
+
+    margin-top:
+        1rem;
+}
+
+
+.chat-title {
+
+    color:
+        #eee4ff;
+
+    font-size:
+        1.2rem;
+
+    font-weight:
+        800;
+}
+
+
+.chat-prompt {
+
+    border-left:
+        3px solid
+        #b69cff;
+
+    padding-left:
+        14px;
+
+    color:
+        #cec4da;
+
+    font-style:
+        italic;
+
+    line-height:
+        1.5;
+}
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.footer {
+
+    text-align:
+        center;
+
+    color:
+        #746a80;
+
+    font-size:
+        .82rem;
+
+    margin-top:
+        2rem;
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    .hero h1 {
+
+        font-size:
+            2.2rem;
+    }
+
+}
+
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# TAROT FUNCTIONS
+# ============================================================
+
+def start_tarot():
 
     question = (
         st.session_state.question
         .strip()
     )
 
-    if not question:
+    name = (
+        st.session_state.name
+        .strip()
+    )
+
+    if not name:
 
         st.session_state.error = (
-            "Please enter a question before starting."
+            "Please enter your name."
         )
 
         return
 
-    # ONLY 8 visible cards
+    if st.session_state.birthday is None:
+
+        st.session_state.error = (
+            "Please enter your birthday."
+        )
+
+        return
+
+    if not question:
+
+        st.session_state.error = (
+            "Please enter your Tarot question."
+        )
+
+        return
+
+    # Show exactly 8 random cards
     st.session_state.pool = random.sample(
         range(len(DECK)),
-        min(8, len(DECK)),
+        min(
+            8,
+            len(DECK)
+        )
     )
 
     st.session_state.selected = []
 
     st.session_state.reading = []
 
-    st.session_state.phase = "select"
+    st.session_state.phase = "tarot_select"
 
     st.session_state.error = ""
 
 
-# ============================================================
-# SELECT / DESELECT CARD
-# ============================================================
-
-def select_card(card_index):
+def toggle_card(card_index):
 
     maximum_cards = len(
         SPREADS[
@@ -841,7 +1303,9 @@ def select_card(card_index):
             card_index
         )
 
-    elif (
+        return
+
+    if (
         len(st.session_state.selected)
         < maximum_cards
     ):
@@ -851,17 +1315,13 @@ def select_card(card_index):
         )
 
 
-# ============================================================
-# REVEAL CARDS
-# ============================================================
-
-def reveal():
+def reveal_tarot():
 
     positions = SPREADS[
         st.session_state.spread
     ]
 
-    cards = []
+    reading = []
 
     for position, index in zip(
         positions,
@@ -891,7 +1351,7 @@ def reveal():
                 ""
             )
 
-        cards.append(
+        reading.append(
             {
                 "position":
                     position,
@@ -907,16 +1367,69 @@ def reveal():
             }
         )
 
-    st.session_state.reading = cards
+    st.session_state.reading = reading
 
-    st.session_state.phase = "reveal"
+    st.session_state.phase = "tarot_result"
 
 
 # ============================================================
-# NEW READING
+# HOROSCOPE FUNCTIONS
 # ============================================================
 
-def new_reading():
+def generate_user_horoscope():
+
+    name = (
+        st.session_state.name
+        .strip()
+    )
+
+    birthday = (
+        st.session_state.birthday
+    )
+
+    if not name:
+
+        st.session_state.error = (
+            "Please enter your name."
+        )
+
+        return
+
+    if birthday is None:
+
+        st.session_state.error = (
+            "Please enter your birthday."
+        )
+
+        return
+
+    sign = get_zodiac_sign(
+        birthday
+    )
+
+    horoscope = generate_horoscope(
+        sign,
+        birthday
+    )
+
+    st.session_state.zodiac = sign
+
+    st.session_state.horoscope = horoscope
+
+    st.session_state.phase = (
+        "horoscope_result"
+    )
+
+    st.session_state.error = ""
+
+
+# ============================================================
+# RESET
+# ============================================================
+
+def reset_app():
+
+    st.session_state.phase = "setup"
 
     st.session_state.pool = []
 
@@ -926,74 +1439,136 @@ def new_reading():
 
     st.session_state.question = ""
 
-    st.session_state.phase = "setup"
+    st.session_state.horoscope = {}
+
+    st.session_state.zodiac = None
 
     st.session_state.error = ""
 
 
 # ============================================================
-# CREATE CHATGPT PROMPT
+# CHATGPT TAROT PROMPT
 # ============================================================
 
-def create_chatgpt_prompt():
-
-    category = (
-        st.session_state.category
-    )
-
-    spread = (
-        st.session_state.spread
-    )
-
-    question = (
-        st.session_state.question
-    )
+def create_tarot_chatgpt_prompt():
 
     prompt = f"""
 Please explain this tarot reading in simple,
 easy-to-understand language.
 
-I want you to:
+User name:
+{st.session_state.name}
 
-1. Explain what each card means in its position.
-2. Explain whether each card is upright or reversed.
-3. Explain how the cards relate to each other.
-4. Explain the overall message of the reading.
-5. Relate the interpretation to my question.
-6. Give me practical things I can reflect on or consider.
-7. Clearly separate symbolic interpretation from facts.
-8. Do not present tarot as a guaranteed prediction
-   of the future.
+Birthday:
+{st.session_state.birthday}
 
-Reading Category:
-{category}
+Reading category:
+{st.session_state.category}
 
 Spread:
-{spread}
+{st.session_state.spread}
 
 Question:
-{question}
+{st.session_state.question}
 
-Cards:
+Please:
+
+1. Explain each Tarot card.
+2. Explain each card's position.
+3. Explain whether each card is upright or reversed.
+4. Explain how the cards relate to one another.
+5. Explain the overall symbolic message.
+6. Relate the interpretation to the user's question.
+7. Give practical things the user can reflect on.
+8. Keep the explanation simple and clear.
+9. Do not present Tarot as a guaranteed prediction.
+
+Tarot reading:
 """
 
     for card in st.session_state.reading:
 
-        prompt += (
-            f"\n\n"
-            f"Position: {card['position']}\n"
-            f"Card: {card['name']}\n"
-            f"Orientation: {card['orientation']}\n"
-            f"Meaning: {card['meaning']}\n"
-        )
+        prompt += f"""
+
+Position:
+{card["position"]}
+
+Card:
+{card["name"]}
+
+Orientation:
+{card["orientation"]}
+
+Meaning:
+{card["meaning"]}
+"""
 
     prompt += """
 
-Please explain the reading in a warm,
-clear and simple way.
+Please explain this in a warm,
+clear and easy-to-understand way.
 
-Avoid complicated tarot terminology unless
-you explain the terminology first.
+Separate symbolic interpretation from
+established facts.
+"""
+
+    return prompt.strip()
+
+
+# ============================================================
+# CHATGPT HOROSCOPE PROMPT
+# ============================================================
+
+def create_horoscope_chatgpt_prompt():
+
+    sign = (
+        st.session_state.zodiac
+    )
+
+    horoscope = (
+        st.session_state.horoscope
+    )
+
+    prompt = f"""
+Please explain this horoscope in simple,
+easy-to-understand language.
+
+Name:
+{st.session_state.name}
+
+Birthday:
+{st.session_state.birthday}
+
+Zodiac sign:
+{sign["name"]}
+
+Zodiac description:
+{sign["description"]}
+
+Horoscope:
+
+Career:
+{horoscope["career"]}
+
+Love & Relationships:
+{horoscope["love"]}
+
+Money:
+{horoscope["money"]}
+
+Personal Growth:
+{horoscope["growth"]}
+
+Please:
+
+1. Explain each section in simple language.
+2. Explain what the themes could mean in everyday life.
+3. Give practical reflection points.
+4. Clearly distinguish astrology as a symbolic/
+   entertainment/reflection practice from factual certainty.
+5. Do not present the horoscope as a guaranteed
+   prediction of future events.
+6. Keep the explanation warm and easy to understand.
 """
 
     return prompt.strip()
@@ -1009,11 +1584,9 @@ st.markdown(
 
         <h1>🔮 Berlin Tarot Reading</h1>
 
-        <p>
-            Choose your question.
-            Pick your own cards.
-            Reveal your reading.
-        </p>
+        <div class="hero-subtitle">
+            Tarot • Horoscope • Reflection • Guidance
+        </div>
 
     </div>
     """,
@@ -1022,22 +1595,80 @@ st.markdown(
 
 
 # ============================================================
-# SETUP SCREEN
+# MODE SELECTOR
 # ============================================================
 
 if st.session_state.phase == "setup":
 
+    mode = st.radio(
+        "Choose your reading",
+        [
+            "🃏 Tarot Reading",
+            "🌙 Horoscope",
+        ],
+        horizontal=True,
+        index=(
+            0
+            if st.session_state.mode
+            == "Tarot Reading"
+            else 1
+        ),
+    )
+
+    if mode == "🃏 Tarot Reading":
+
+        st.session_state.mode = (
+            "Tarot Reading"
+        )
+
+    else:
+
+        st.session_state.mode = (
+            "Horoscope"
+        )
+
+
+# ============================================================
+# TAROT SETUP
+# ============================================================
+
+if (
+    st.session_state.phase == "setup"
+    and
+    st.session_state.mode
+    == "Tarot Reading"
+):
+
     st.markdown(
-        '<div class="section">'
-        '1. Choose your reading'
+        '<div class="section-title">'
+        '🃏 Tarot Reading'
         '</div>',
         unsafe_allow_html=True,
     )
 
-    st.markdown(
-        '<div class="setup-box">',
-        unsafe_allow_html=True,
-    )
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.session_state.name = st.text_input(
+            "Your name",
+            value=(
+                st.session_state.name
+            ),
+            placeholder="Enter your name",
+        )
+
+    with col2:
+
+        st.session_state.birthday = st.date_input(
+            "Your birthday",
+            value=(
+                st.session_state.birthday
+                or date(1990, 1, 1)
+            ),
+            min_value=date(1900, 1, 1),
+            max_value=date.today(),
+        )
 
     col1, col2 = st.columns(2)
 
@@ -1063,22 +1694,16 @@ if st.session_state.phase == "setup":
             )
         )
 
-    st.session_state.question = (
-        st.text_area(
-            "Your question",
-
-            value=(
-                st.session_state.question
-            ),
-
-            placeholder=(
-                "Example: "
-                "What will happen "
-                "in the next 3 months?"
-            ),
-
-            height=100,
-        )
+    st.session_state.question = st.text_area(
+        "Your question",
+        value=(
+            st.session_state.question
+        ),
+        placeholder=(
+            "Example: What do I need to know "
+            "about my career right now?"
+        ),
+        height=110,
     )
 
     if st.session_state.error:
@@ -1087,32 +1712,37 @@ if st.session_state.phase == "setup":
             st.session_state.error
         )
 
-    st.markdown(
-        """
-        <div class="instruction-box">
+    with st.container(border=True):
 
-        <h3>🔮 How it works</h3>
+        st.markdown(
+            "### 🔮 How it works"
+        )
 
-        <p>
-        Think about your question while choosing
-        your reading category and spread.
-        </p>
+        st.write(
+            "Enter your name and birthday, "
+            "choose your reading category, "
+            "and ask your question."
+        )
 
-        <p>
-        The deck will shuffle and show you
-        <strong>8 Berlin Tarot card backs</strong>.
-        Choose your cards personally.
-        </p>
+        st.write(
+            "The deck will shuffle and show "
+            "**8 Berlin Tarot card backs**."
+        )
 
-        <p>
-        Your selected cards will then be revealed
-        as actual Tarot card images.
-        </p>
+        st.write(
+            "Choose your cards personally."
+        )
 
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        st.write(
+            "Your selected cards will then be "
+            "revealed as actual Tarot card images."
+        )
+
+        st.write(
+            "After your reading, you can copy "
+            "the result into ChatGPT for a "
+            "simpler interpretation."
+        )
 
     st.markdown(
         "<br>",
@@ -1125,21 +1755,114 @@ if st.session_state.phase == "setup":
         use_container_width=True,
     ):
 
-        start_reading()
+        start_tarot()
 
-        st.rerun()
+        if (
+            st.session_state.phase
+            == "tarot_select"
+        ):
+
+            st.rerun()
+
+
+# ============================================================
+# HOROSCOPE SETUP
+# ============================================================
+
+elif (
+    st.session_state.phase == "setup"
+    and
+    st.session_state.mode
+    == "Horoscope"
+):
 
     st.markdown(
-        "</div>",
+        '<div class="section-title">'
+        '🌙 Horoscope Reading'
+        '</div>',
         unsafe_allow_html=True,
     )
 
+    st.session_state.name = st.text_input(
+        "Your name",
+        value=(
+            st.session_state.name
+        ),
+        placeholder="Enter your name",
+    )
+
+    st.session_state.birthday = st.date_input(
+        "Your birthday",
+        value=(
+            st.session_state.birthday
+            or date(1990, 1, 1)
+        ),
+        min_value=date(1900, 1, 1),
+        max_value=date.today(),
+    )
+
+    if st.session_state.error:
+
+        st.error(
+            st.session_state.error
+        )
+
+    with st.container(border=True):
+
+        st.markdown(
+            "### 🌙 How it works"
+        )
+
+        st.write(
+            "Enter your name and birthday."
+        )
+
+        st.write(
+            "Berlin Tarot Reading will "
+            "determine your zodiac sign."
+        )
+
+        st.write(
+            "You will receive symbolic themes "
+            "for career, love, money, and "
+            "personal growth."
+        )
+
+        st.write(
+            "You can then copy the result "
+            "and ask ChatGPT to explain it "
+            "in simpler language."
+        )
+
+    st.markdown(
+        "<br>",
+        unsafe_allow_html=True,
+    )
+
+    if st.button(
+        "🌙 Generate My Horoscope",
+        type="primary",
+        use_container_width=True,
+    ):
+
+        generate_user_horoscope()
+
+        if (
+            st.session_state.phase
+            == "horoscope_result"
+        ):
+
+            st.rerun()
+
 
 # ============================================================
-# CARD SELECTION SCREEN
+# TAROT CARD SELECTION
 # ============================================================
 
-elif st.session_state.phase == "select":
+elif (
+    st.session_state.phase
+    == "tarot_select"
+):
 
     required_cards = len(
         SPREADS[
@@ -1152,10 +1875,20 @@ elif st.session_state.phase == "select":
     )
 
     st.markdown(
+        '<div class="section-title">'
+        '2. Pick your cards'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
         f"""
-        <div class="section">
-            2. Pick {required_cards}
+        <div class="selection-title">
+
+            Choose {required_cards}
             {"card" if required_cards == 1 else "cards"}
+            from the 8 Berlin cards
+
         </div>
         """,
         unsafe_allow_html=True,
@@ -1163,16 +1896,7 @@ elif st.session_state.phase == "select":
 
     st.markdown(
         f"""
-        <div class="selection-info">
-
-            Select <strong>{required_cards}</strong>
-            card{"s" if required_cards != 1 else ""}
-
-            from the
-            <strong>8 Berlin cards</strong>
-            below.
-
-            <br>
+        <div class="selection-subtitle">
 
             Selected:
             <strong>
@@ -1184,64 +1908,58 @@ elif st.session_state.phase == "select":
         unsafe_allow_html=True,
     )
 
-    # ========================================================
-    # CARD BACK
-    # ========================================================
-
     card_back = get_card_back()
 
     if card_back is None:
 
-        st.warning(
-            "⚠️ Berlin card-back image not found."
+        st.error(
+            "Berlin card-back image was not found."
         )
 
-        st.caption(
-            "Expected file: "
+        st.info(
+            "Place it here:\n\n"
             "assets/tarot/berlin-card-back.png"
         )
 
-    # ========================================================
-    # 8 CARD POSITIONS
-    # ========================================================
-
-    pool = st.session_state.pool
+    pool = (
+        st.session_state.pool
+    )
 
     columns = st.columns(
         8,
         gap="small",
     )
 
-    for position_number, (
+    for number, (
         column,
-        index
+        card_index
     ) in enumerate(
-        zip(columns, pool),
+        zip(
+            columns,
+            pool
+        ),
         start=1,
     ):
 
         with column:
 
             selected = (
-                index
+                card_index
                 in st.session_state.selected
             )
 
-            css_class = (
-                "selected-card"
+            wrapper_class = (
+                "selected-wrapper"
                 if selected
-                else "selection-card"
+                else "card-back-wrapper"
             )
 
             st.markdown(
-                f"""
-                <div class="{css_class}">
-                """,
+                f'<div class="{wrapper_class}">',
                 unsafe_allow_html=True,
             )
 
-            # Actual Berlin card-back image
-            if card_back is not None:
+            if card_back:
 
                 st.image(
                     str(card_back),
@@ -1253,7 +1971,7 @@ elif st.session_state.phase == "select":
                 st.markdown(
                     """
                     <div style="
-                        height:260px;
+                        height:220px;
                         display:flex;
                         align-items:center;
                         justify-content:center;
@@ -1268,7 +1986,7 @@ elif st.session_state.phase == "select":
             st.markdown(
                 f"""
                 <div class="card-number">
-                    CARD {position_number}
+                    CARD {number}
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -1279,25 +1997,21 @@ elif st.session_state.phase == "select":
                 unsafe_allow_html=True,
             )
 
-            if selected:
-
-                button_label = (
-                    "✓ Selected"
-                )
-
-            else:
-
-                button_label = (
-                    "🃏 Pick"
-                )
+            button_text = (
+                "✓ Selected"
+                if selected
+                else "🃏 Pick"
+            )
 
             if st.button(
-                button_label,
-                key=f"pick_{index}",
+                button_text,
+                key=f"card_{card_index}",
                 use_container_width=True,
             ):
 
-                select_card(index)
+                toggle_card(
+                    card_index
+                )
 
                 st.rerun()
 
@@ -1305,10 +2019,6 @@ elif st.session_state.phase == "select":
         "<br>",
         unsafe_allow_html=True,
     )
-
-    # ========================================================
-    # ACTION BUTTONS
-    # ========================================================
 
     col1, col2 = st.columns(2)
 
@@ -1324,7 +2034,7 @@ elif st.session_state.phase == "select":
             use_container_width=True,
         ):
 
-            reveal()
+            reveal_tarot()
 
             st.rerun()
 
@@ -1338,7 +2048,10 @@ elif st.session_state.phase == "select":
             st.session_state.pool = (
                 random.sample(
                     range(len(DECK)),
-                    min(8, len(DECK)),
+                    min(
+                        8,
+                        len(DECK)
+                    ),
                 )
             )
 
@@ -1348,22 +2061,34 @@ elif st.session_state.phase == "select":
 
 
 # ============================================================
-# READING SCREEN
+# TAROT RESULT
 # ============================================================
 
-elif st.session_state.phase == "reveal":
+elif (
+    st.session_state.phase
+    == "tarot_result"
+):
 
     st.markdown(
-        '<div class="section">'
-        '3. Your cards'
+        '<div class="section-title">'
+        '🔮 Your Tarot Reading'
         '</div>',
         unsafe_allow_html=True,
     )
 
     st.write(
-        f"**{st.session_state.category}** "
-        f" · "
-        f"{st.session_state.spread}"
+        f"**Name:** "
+        f"{st.session_state.name}"
+    )
+
+    st.write(
+        f"**Birthday:** "
+        f"{st.session_state.birthday}"
+    )
+
+    st.write(
+        f"**Category:** "
+        f"{st.session_state.category}"
     )
 
     st.write(
@@ -1379,10 +2104,6 @@ elif st.session_state.phase == "reveal":
     cards = (
         st.session_state.reading
     )
-
-    # ========================================================
-    # REVEALED TAROT CARDS
-    # ========================================================
 
     columns = st.columns(
         len(cards),
@@ -1408,27 +2129,23 @@ elif st.session_state.phase == "reveal":
                         {card["position"]}
                     </div>
 
+                </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            # ------------------------------------------------
-            # CARD IMAGE
-            # ------------------------------------------------
-
-            if image_path is not None:
+            if image_path:
 
                 if (
                     card["orientation"]
                     == "Reversed"
                 ):
 
-                    # Display reversed card
                     image_bytes = (
                         image_path.read_bytes()
                     )
 
-                    encoded = (
+                    encoded_image = (
                         base64.b64encode(
                             image_bytes
                         ).decode(
@@ -1436,25 +2153,24 @@ elif st.session_state.phase == "reveal":
                         )
                     )
 
-                    suffix = (
-                        image_path.suffix
-                        .lower()
+                    extension = (
+                        image_path.suffix.lower()
                     )
 
-                    if suffix == ".png":
+                    if extension == ".png":
 
-                        mime = "image/png"
+                        mime_type = "image/png"
 
-                    elif suffix in [
+                    elif extension in (
                         ".jpg",
                         ".jpeg",
-                    ]:
+                    ):
 
-                        mime = "image/jpeg"
+                        mime_type = "image/jpeg"
 
                     else:
 
-                        mime = "image/webp"
+                        mime_type = "image/webp"
 
                     st.markdown(
                         f"""
@@ -1465,16 +2181,17 @@ elif st.session_state.phase == "reveal":
                         ">
 
                             <img
-                                src="data:{mime};base64,{encoded}"
+                                src="data:{mime_type};base64,{encoded_image}"
                                 style="
                                     width:100%;
-                                    max-width:270px;
+                                    max-width:280px;
                                     border-radius:12px;
                                     border:3px solid #c9a86a;
                                     box-shadow:
                                         0 15px 40px
                                         rgba(0,0,0,.55);
-                                    transform:rotate(180deg);
+                                    transform:
+                                        rotate(180deg);
                                 "
                             >
 
@@ -1494,30 +2211,21 @@ elif st.session_state.phase == "reveal":
 
                 st.error(
                     f"Image not found for "
-                    f"**{card['name']}**"
+                    f"{card['name']}"
                 )
-
-                st.caption(
-                    f"Looking in: "
-                    f"{ACTIVE_IMAGE_DIR}"
-                )
-
-            # ------------------------------------------------
-            # CARD NAME
-            # ------------------------------------------------
 
             st.markdown(
                 f"""
+                <div style="
+                    text-align:center;
+                ">
+
                     <div class="reading-card-title">
-
                         {card["name"]}
-
                     </div>
 
                     <div class="orientation">
-
                         ✦ {card["orientation"]} ✦
-
                     </div>
 
                 </div>
@@ -1525,29 +2233,23 @@ elif st.session_state.phase == "reveal":
                 unsafe_allow_html=True,
             )
 
-            # ------------------------------------------------
-            # MEANING
-            # ------------------------------------------------
-
             st.markdown(
                 f"""
                 <div class="meaning">
-
                     {card["meaning"]}
-
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
     # ========================================================
-    # READING INTERPRETATION
+    # INTERPRETATION
     # ========================================================
 
     st.divider()
 
     st.markdown(
-        "### 🔮 Reading"
+        "### 🔮 Interpretation"
     )
 
     if (
@@ -1555,39 +2257,25 @@ elif st.session_state.phase == "reveal":
         == "🔮 Future"
     ):
 
-        intro = (
-            "This Future reading is best treated "
-            "as a symbolic look at possible themes "
-            "and preparation points — not a guaranteed "
-            "prediction."
+        st.info(
+            "This Future reading is presented "
+            "as symbolic themes and possibilities, "
+            "not as a guaranteed prediction."
         )
 
     else:
 
-        intro = (
-            "Use these cards as symbolic prompts "
+        st.info(
+            "Use the cards as symbolic prompts "
             "for reflection and decision-making."
         )
-
-    st.info(
-        intro
-    )
-
-    # ========================================================
-    # CARD-BY-CARD INTERPRETATION
-    # ========================================================
 
     for card in cards:
 
         st.markdown(
-            f"""
-            **{card['position']} — "
+            f"**{card['position']} — "
             f"{card['name']} "
-            f"({card['orientation']})**
-            """.replace(
-                '"',
-                ""
-            )
+            f"({card['orientation']})**"
         )
 
         st.write(
@@ -1595,92 +2283,65 @@ elif st.session_state.phase == "reveal":
         )
 
     # ========================================================
-    # CHATGPT EXPLANATION
+    # CHATGPT
     # ========================================================
 
     st.divider()
 
     st.markdown(
-        "### 💬 Want a simpler explanation?"
+        "### 💬 How to interpret this with ChatGPT"
     )
 
     st.write(
-        """
-        Your Tarot result can have several
-        symbolic interpretations.
-
-        Copy the reading below and paste it into
-        ChatGPT to get a simpler explanation
-        connected to your question.
-        """
+        "Copy the text below, open ChatGPT, "
+        "paste it, and send it."
     )
 
-    st.markdown(
-        """
-        <div class="instruction-box">
+    with st.container(border=True):
 
-        <h3>🤖 How to use ChatGPT</h3>
+        st.markdown(
+            "#### 🤖 Steps"
+        )
 
-        <p>
-        <strong>1️⃣ Copy</strong> the reading below.
-        </p>
+        st.write(
+            "1️⃣ Click inside the box below."
+        )
 
-        <p>
-        <strong>2️⃣ Open ChatGPT.</strong>
-        </p>
+        st.write(
+            "2️⃣ Press **Ctrl+A**."
+        )
 
-        <p>
-        <strong>3️⃣ Paste</strong> the reading.
-        </p>
+        st.write(
+            "3️⃣ Press **Ctrl+C**."
+        )
 
-        <p>
-        <strong>4️⃣ Send it.</strong>
-        </p>
+        st.write(
+            "4️⃣ Open ChatGPT."
+        )
 
-        <p>
-        ChatGPT will explain the cards in simpler
-        language and relate them to your question.
-        </p>
+        st.write(
+            "5️⃣ Press **Ctrl+V**."
+        )
 
-        <p class="chatgpt-prompt">
-        "Explain this tarot reading to me in simple
-        language. Relate it to my question, explain
-        each card and the overall message, and give
-        me practical things to reflect on. Do not
-        treat it as a guaranteed prediction."
-        </p>
+        st.write(
+            "6️⃣ Send the message."
+        )
 
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # ========================================================
-    # COPY-READY TEXT
-    # ========================================================
-
-    chatgpt_prompt = (
-        create_chatgpt_prompt()
+    tarot_prompt = (
+        create_tarot_chatgpt_prompt()
     )
 
     st.text_area(
-        "📋 Copy this and paste it into ChatGPT",
-
-        value=chatgpt_prompt,
-
-        height=350,
+        "📋 Copy-ready ChatGPT prompt",
+        value=tarot_prompt,
+        height=400,
     )
 
     st.info(
-        "💡 Tip: Click inside the text box, "
-        "press Ctrl+A, then Ctrl+C. "
-        "Open ChatGPT, paste with Ctrl+V, "
-        "and send it."
+        "ChatGPT can simplify the symbolic "
+        "interpretation, but Tarot should not "
+        "be treated as a guaranteed prediction."
     )
-
-    # ========================================================
-    # NEW READING
-    # ========================================================
 
     st.divider()
 
@@ -1690,7 +2351,186 @@ elif st.session_state.phase == "reveal":
         use_container_width=True,
     ):
 
-        new_reading()
+        reset_app()
+
+        st.rerun()
+
+
+# ============================================================
+# HOROSCOPE RESULT
+# ============================================================
+
+elif (
+    st.session_state.phase
+    == "horoscope_result"
+):
+
+    sign = (
+        st.session_state.zodiac
+    )
+
+    horoscope = (
+        st.session_state.horoscope
+    )
+
+    st.markdown(
+        '<div class="section-title">'
+        '🌙 Your Horoscope'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.write(
+        f"**Name:** "
+        f"{st.session_state.name}"
+    )
+
+    st.write(
+        f"**Birthday:** "
+        f"{st.session_state.birthday}"
+    )
+
+    # ========================================================
+    # ZODIAC CARD
+    # ========================================================
+
+    st.markdown(
+        f"""
+        <div class="zodiac-card">
+
+            <div class="zodiac-symbol">
+                {sign["symbol"]}
+            </div>
+
+            <div class="zodiac-name">
+                {sign["name"]}
+            </div>
+
+            <div class="zodiac-description">
+                {sign["description"]}
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ========================================================
+    # HOROSCOPE SECTIONS
+    # ========================================================
+
+    section_order = [
+        "career",
+        "love",
+        "money",
+        "growth",
+    ]
+
+    for category in section_order:
+
+        data = (
+            HOROSCOPE_THEMES[
+                category
+            ]
+        )
+
+        st.markdown(
+            f"""
+            <div class="horoscope-section">
+
+                <h3>
+                    {data["title"]}
+                </h3>
+
+                <p>
+                    {horoscope[category]}
+                </p>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    # ========================================================
+    # REFLECTION
+    # ========================================================
+
+    st.info(
+        "🌙 This horoscope is a symbolic "
+        "reflection tool. It is not a guaranteed "
+        "prediction of future events."
+    )
+
+    # ========================================================
+    # CHATGPT
+    # ========================================================
+
+    st.divider()
+
+    st.markdown(
+        "### 💬 How to interpret this with ChatGPT"
+    )
+
+    st.write(
+        "Copy the horoscope below, open ChatGPT, "
+        "paste it, and ask ChatGPT to explain "
+        "it in simple language."
+    )
+
+    with st.container(border=True):
+
+        st.markdown(
+            "#### 🤖 Steps"
+        )
+
+        st.write(
+            "1️⃣ Click inside the box."
+        )
+
+        st.write(
+            "2️⃣ Press **Ctrl+A**."
+        )
+
+        st.write(
+            "3️⃣ Press **Ctrl+C**."
+        )
+
+        st.write(
+            "4️⃣ Open ChatGPT."
+        )
+
+        st.write(
+            "5️⃣ Press **Ctrl+V**."
+        )
+
+        st.write(
+            "6️⃣ Send the message."
+        )
+
+    horoscope_prompt = (
+        create_horoscope_chatgpt_prompt()
+    )
+
+    st.text_area(
+        "📋 Copy-ready ChatGPT prompt",
+        value=horoscope_prompt,
+        height=400,
+    )
+
+    st.info(
+        "ChatGPT can explain the symbolic "
+        "themes in simpler language."
+    )
+
+    st.divider()
+
+    if st.button(
+        "🔄 Start a New Reading",
+        type="primary",
+        use_container_width=True,
+    ):
+
+        reset_app()
 
         st.rerun()
 
@@ -1699,17 +2539,19 @@ elif st.session_state.phase == "reveal":
 # FOOTER
 # ============================================================
 
+st.divider()
+
 st.markdown(
     """
     <div class="footer">
 
         🔮 Berlin Tarot Reading
 
-        <br>
+        <br><br>
 
-        Tarot is presented as a reflective
-        and symbolic practice, not a guaranteed
-        prediction.
+        Tarot and horoscope content are presented
+        as symbolic reflection and entertainment,
+        not as guaranteed predictions.
 
     </div>
     """,

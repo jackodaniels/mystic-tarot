@@ -2130,35 +2130,6 @@ if (
             )
         )
 
-    # Explain the selected spread immediately so new users understand
-    # what each card position means before starting the reading.
-    spread_info = SPREAD_DESCRIPTIONS[
-        st.session_state.spread
-    ]
-
-    with st.container(border=True):
-
-        st.markdown(
-            f"### 🃏 {st.session_state.spread} — How this reading works"
-        )
-
-        st.caption(
-            spread_info["purpose"]
-        )
-
-        for number, (position, explanation) in enumerate(
-            spread_info["positions"],
-            start=1,
-        ):
-
-            st.markdown(
-                f"**{number}. {position}** — {explanation}"
-            )
-
-        st.caption(
-            "🔮 Tarot is used here as a symbolic reflection tool, not as a guaranteed prediction of future events."
-        )
-
     st.session_state.question = st.text_area(
         "Your question",
         value=(

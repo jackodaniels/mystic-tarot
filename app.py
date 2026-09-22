@@ -15,7 +15,7 @@ from PIL import Image
 # ============================================================
 
 st.set_page_config(
-    page_title="MARGAUX Technology",
+    page_title="Berlin Tarot Reading",
     page_icon="🔮",
     layout="wide",
 )
@@ -1808,7 +1808,10 @@ def render_flip_card(
             object-fit:cover;
             display:block;
         }}
-        .back {{ transform:rotateY(180deg); }}
+        /* Back is the visible face before the flip. */
+        .back {{ transform:rotateY(0deg); }}
+        /* Tarot face is hidden on the back side until the card flips. */
+        .front {{ transform:rotateY(180deg); }}
         .front img {{ transform:{rotation}; }}
         @keyframes flipIn {{
             from {{ transform:rotateY(0deg); }}

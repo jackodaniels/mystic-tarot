@@ -2384,17 +2384,3 @@ elif (
         reset_app()
 
         st.rerun()
-
-
-# ============================================================
-# BOTTOM BANNER
-# ============================================================
-
-st.divider()
-
-if banner:
-
-    st.image(
-        str(banner),
-        use_container_width=True,
-    )

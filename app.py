@@ -1499,7 +1499,8 @@ def start_tarot():
 
     st.session_state.reading = []
 
-    st.session_state.phase = "tarot_select"
+    # Show a dedicated shuffle animation before card picking.
+    st.session_state.phase = "tarot_shuffle"
 
     st.session_state.error = ""
 
@@ -2217,7 +2218,7 @@ if (
 
         if (
             st.session_state.phase
-            == "tarot_select"
+            == "tarot_shuffle"
         ):
 
             st.rerun()
@@ -2303,6 +2304,86 @@ elif (
         ):
 
             st.rerun()
+
+
+# ============================================================
+# TAROT SHUFFLE ANIMATION — 3 TIMES
+# ============================================================
+
+elif (
+    st.session_state.phase
+    == "tarot_shuffle"
+):
+
+    st.markdown("## 🃏 Shuffling the Deck")
+
+    st.caption(
+        "The 8-card deck is shuffled 3 times before you pick your cards."
+    )
+
+    card_back = get_card_back()
+
+    if card_back is None:
+
+        st.error(
+            "Berlin card-back image was not found."
+        )
+
+    else:
+
+        status = st.empty()
+        deck_area = st.empty()
+
+        # Exactly three visible shuffle passes.
+        for shuffle_number in range(1, 4):
+
+            random.shuffle(st.session_state.pool)
+
+            status.markdown(
+                f"### 🔄 Shuffle {shuffle_number} / 3"
+            )
+
+            with deck_area.container():
+
+                for row_start in range(0, 8, 4):
+
+                    row = st.session_state.pool[
+                        row_start:row_start + 4
+                    ]
+
+                    columns = st.columns(4, gap="small")
+
+                    for position, (column, _card_index) in enumerate(
+                        zip(columns, row),
+                        start=row_start + 1,
+                    ):
+
+                        with column:
+
+                            st.image(
+                                str(card_back),
+                                use_container_width=True,
+                            )
+
+                            st.caption(
+                                f"Card {position}"
+                            )
+
+            # Pause so users can actually see each shuffle.
+            time.sleep(0.65)
+
+        status.markdown(
+            "### ✨ Shuffle complete — choose your cards"
+        )
+
+        time.sleep(0.25)
+
+        st.session_state.selected = []
+        st.session_state.selected_details = {}
+        st.session_state.reading = []
+        st.session_state.phase = "tarot_select"
+
+        st.rerun()
 
 
 # ============================================================

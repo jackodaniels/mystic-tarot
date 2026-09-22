@@ -6,6 +6,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 import streamlit as st
+from PIL import Image
 
 
 # ============================================================
@@ -40,6 +41,15 @@ CARD_BACK_FILENAMES = [
     "berlin-card-back.jpeg",
     "berlin-card-back.webp",
 ]
+
+BANNER_FILENAMES = [
+    "Banner.png",
+    "banner.png",
+]
+
+WINDOWS_BANNER_PATH = Path(
+    r"C:\Users\HDPlanco\Downloads\tarot\Banner.png"
+)
 
 
 # ============================================================
@@ -232,6 +242,23 @@ def get_card_back():
         if path.exists():
 
             return path
+
+    return None
+
+
+def get_banner():
+
+    for filename in BANNER_FILENAMES:
+
+        path = IMAGE_DIR / filename
+
+        if path.exists():
+
+            return path
+
+    if WINDOWS_BANNER_PATH.exists():
+
+        return WINDOWS_BANNER_PATH
 
     return None
 
@@ -1575,23 +1602,24 @@ Please:
 
 
 # ============================================================
-# HEADER
+# TOP BANNER
 # ============================================================
 
-st.markdown(
-    """
-    <div class="hero">
+banner = get_banner()
 
-        <h1>🔮 Berlin Tarot Reading</h1>
+if banner:
 
-        <div class="hero-subtitle">
-            Tarot • Horoscope • Reflection • Guidance
-        </div>
+    st.image(
+        str(banner),
+        use_container_width=True,
+    )
 
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+else:
+
+    st.warning(
+        "Banner.png was not found. "
+        "Place it at assets/tarot/Banner.png."
+    )
 
 
 # ============================================================
@@ -1639,12 +1667,7 @@ if (
     == "Tarot Reading"
 ):
 
-    st.markdown(
-        '<div class="section-title">'
-        '🃏 Tarot Reading'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("## 🃏 Tarot Reading")
 
     col1, col2 = st.columns(2)
 
@@ -1744,10 +1767,7 @@ if (
             "simpler interpretation."
         )
 
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True,
-    )
+    st.write("")
 
     if st.button(
         "✨ Start & Shuffle the Deck",
@@ -1776,12 +1796,7 @@ elif (
     == "Horoscope"
 ):
 
-    st.markdown(
-        '<div class="section-title">'
-        '🌙 Horoscope Reading'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("## 🌙 Horoscope Reading")
 
     st.session_state.name = st.text_input(
         "Your name",
@@ -1834,10 +1849,7 @@ elif (
             "in simpler language."
         )
 
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True,
-    )
+    st.write("")
 
     if st.button(
         "🌙 Generate My Horoscope",
@@ -1874,38 +1886,16 @@ elif (
         st.session_state.selected
     )
 
-    st.markdown(
-        '<div class="section-title">'
-        '2. Pick your cards'
-        '</div>',
-        unsafe_allow_html=True,
+    st.markdown("## 2. Pick your cards")
+
+    st.write(
+        f"Choose {required_cards} "
+        f"{'card' if required_cards == 1 else 'cards'} "
+        "from the 8 Berlin cards."
     )
 
-    st.markdown(
-        f"""
-        <div class="selection-title">
-
-            Choose {required_cards}
-            {"card" if required_cards == 1 else "cards"}
-            from the 8 Berlin cards
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        f"""
-        <div class="selection-subtitle">
-
-            Selected:
-            <strong>
-                {selected_cards} / {required_cards}
-            </strong>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
+    st.caption(
+        f"Selected: {selected_cards} / {required_cards}"
     )
 
     card_back = get_card_back()
@@ -1948,17 +1938,6 @@ elif (
                 in st.session_state.selected
             )
 
-            wrapper_class = (
-                "selected-wrapper"
-                if selected
-                else "card-back-wrapper"
-            )
-
-            st.markdown(
-                f'<div class="{wrapper_class}">',
-                unsafe_allow_html=True,
-            )
-
             if card_back:
 
                 st.image(
@@ -1968,33 +1947,12 @@ elif (
 
             else:
 
-                st.markdown(
-                    """
-                    <div style="
-                        height:220px;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        font-size:4rem;
-                    ">
-                        👑
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
+                st.warning(
+                    "Berlin card-back image not found."
                 )
 
-            st.markdown(
-                f"""
-                <div class="card-number">
-                    CARD {number}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True,
+            st.caption(
+                f"Card {number}"
             )
 
             button_text = (
@@ -2015,10 +1973,7 @@ elif (
 
                 st.rerun()
 
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True,
-    )
+    st.write("")
 
     col1, col2 = st.columns(2)
 
@@ -2069,12 +2024,7 @@ elif (
     == "tarot_result"
 ):
 
-    st.markdown(
-        '<div class="section-title">'
-        '🔮 Your Tarot Reading'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("## 🔮 Your Tarot Reading")
 
     st.write(
         f"**Name:** "
@@ -2096,10 +2046,7 @@ elif (
         f"{st.session_state.question}"
     )
 
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True,
-    )
+    st.write("")
 
     cards = (
         st.session_state.reading
@@ -2121,126 +2068,54 @@ elif (
                 card["name"]
             )
 
-            st.markdown(
-                f"""
-                <div class="reading-card">
+            with st.container(border=True):
 
-                    <div class="reading-position">
-                        {card["position"]}
-                    </div>
+                st.markdown(
+                    f"### {card['position']}"
+                )
 
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                if image_path:
 
-            if image_path:
+                    if card["orientation"] == "Reversed":
 
-                if (
-                    card["orientation"]
-                    == "Reversed"
-                ):
+                        card_image = Image.open(
+                            image_path
+                        ).convert("RGB")
 
-                    image_bytes = (
-                        image_path.read_bytes()
-                    )
-
-                    encoded_image = (
-                        base64.b64encode(
-                            image_bytes
-                        ).decode(
-                            "utf-8"
+                        card_image = card_image.rotate(
+                            180,
+                            expand=True
                         )
-                    )
 
-                    extension = (
-                        image_path.suffix.lower()
-                    )
-
-                    if extension == ".png":
-
-                        mime_type = "image/png"
-
-                    elif extension in (
-                        ".jpg",
-                        ".jpeg",
-                    ):
-
-                        mime_type = "image/jpeg"
+                        st.image(
+                            card_image,
+                            use_container_width=True,
+                        )
 
                     else:
 
-                        mime_type = "image/webp"
-
-                    st.markdown(
-                        f"""
-                        <div style="
-                            display:flex;
-                            justify-content:center;
-                            margin:10px auto;
-                        ">
-
-                            <img
-                                src="data:{mime_type};base64,{encoded_image}"
-                                style="
-                                    width:100%;
-                                    max-width:280px;
-                                    border-radius:12px;
-                                    border:3px solid #c9a86a;
-                                    box-shadow:
-                                        0 15px 40px
-                                        rgba(0,0,0,.55);
-                                    transform:
-                                        rotate(180deg);
-                                "
-                            >
-
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+                        st.image(
+                            str(image_path),
+                            use_container_width=True,
+                        )
 
                 else:
 
-                    st.image(
-                        str(image_path),
-                        use_container_width=True,
+                    st.error(
+                        f"Image not found for {card['name']}"
                     )
 
-            else:
-
-                st.error(
-                    f"Image not found for "
-                    f"{card['name']}"
+                st.markdown(
+                    f"**{card['name']}**"
                 )
 
-            st.markdown(
-                f"""
-                <div style="
-                    text-align:center;
-                ">
+                st.caption(
+                    f"✦ {card['orientation']} ✦"
+                )
 
-                    <div class="reading-card-title">
-                        {card["name"]}
-                    </div>
-
-                    <div class="orientation">
-                        ✦ {card["orientation"]} ✦
-                    </div>
-
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            st.markdown(
-                f"""
-                <div class="meaning">
-                    {card["meaning"]}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                st.write(
+                    card["meaning"]
+                )
 
     # ========================================================
     # INTERPRETATION
@@ -2373,12 +2248,7 @@ elif (
         st.session_state.horoscope
     )
 
-    st.markdown(
-        '<div class="section-title">'
-        '🌙 Your Horoscope'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("## 🌙 Your Horoscope")
 
     st.write(
         f"**Name:** "
@@ -2394,28 +2264,16 @@ elif (
     # ZODIAC CARD
     # ========================================================
 
-    st.markdown(
-        f"""
-        <div class="zodiac-card">
+    with st.container(border=True):
 
-            <div class="zodiac-symbol">
-                {sign["symbol"]}
-            </div>
+        st.markdown(
+            f"## {sign['symbol']} {sign['name']}"
+        )
 
-            <div class="zodiac-name">
-                {sign["name"]}
-            </div>
+        st.write(
+            sign["description"]
+        )
 
-            <div class="zodiac-description">
-                {sign["description"]}
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # ========================================================
     # HOROSCOPE SECTIONS
     # ========================================================
 
@@ -2434,22 +2292,15 @@ elif (
             ]
         )
 
-        st.markdown(
-            f"""
-            <div class="horoscope-section">
+        with st.container(border=True):
 
-                <h3>
-                    {data["title"]}
-                </h3>
+            st.markdown(
+                f"### {data['title']}"
+            )
 
-                <p>
-                    {horoscope[category]}
-                </p>
-
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            st.write(
+                horoscope[category]
+            )
 
     # ========================================================
     # REFLECTION
@@ -2536,24 +2387,14 @@ elif (
 
 
 # ============================================================
-# FOOTER
+# BOTTOM BANNER
 # ============================================================
 
 st.divider()
 
-st.markdown(
-    """
-    <div class="footer">
+if banner:
 
-        🔮 Berlin Tarot Reading
-
-        <br><br>
-
-        Tarot and horoscope content are presented
-        as symbolic reflection and entertainment,
-        not as guaranteed predictions.
-
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+    st.image(
+        str(banner),
+        use_container_width=True,
+    )

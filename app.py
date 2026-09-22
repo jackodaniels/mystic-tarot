@@ -15,7 +15,7 @@ from PIL import Image
 # ============================================================
 
 st.set_page_config(
-    page_title="Margaux Technology",
+    page_title="Berlin Tarot Reading",
     page_icon="🔮",
     layout="wide",
 )
@@ -299,9 +299,9 @@ SPREADS = {
     ],
 
     "3 Cards": [
-        "Past / Foundation",
-        "Present / Energy",
-        "Future / Direction",
+        "Situation",
+        "Challenge",
+        "Guidance",
     ],
 
     "5 Cards": [
@@ -311,6 +311,38 @@ SPREADS = {
         "Advice",
         "Direction",
     ],
+
+}
+
+# Simple explanations shown to users when they choose a spread.
+SPREAD_DESCRIPTIONS = {
+
+    "1 Card": {
+        "purpose": "Quick, focused guidance for one question or daily reflection.",
+        "positions": [
+            ("Guidance", "The main symbolic message or energy to reflect on."),
+        ],
+    },
+
+    "3 Cards": {
+        "purpose": "A simple three-part view of your situation: what is happening, what may be difficult, and what to consider next.",
+        "positions": [
+            ("Situation", "What is happening or influencing you now."),
+            ("Challenge", "The main obstacle, tension, or difficulty to consider."),
+            ("Guidance", "What you can reflect on or consider moving forward."),
+        ],
+    },
+
+    "5 Cards": {
+        "purpose": "A deeper reflection that explores the situation, challenge, hidden influence, advice, and symbolic direction.",
+        "positions": [
+            ("Situation", "Your current circumstances or the main energy around the question."),
+            ("Challenge", "The main obstacle, tension, or issue to work through."),
+            ("Hidden Influence", "Something beneath the surface that may be affecting the situation."),
+            ("Advice", "A practical or reflective message to consider."),
+            ("Direction", "The symbolic direction or theme to reflect on going forward—not a guaranteed prediction."),
+        ],
+    },
 
 }
 
@@ -2094,7 +2126,37 @@ if (
                 list(
                     SPREADS.keys()
                 ),
+                help="Choose how many cards you want and what each position means.",
             )
+        )
+
+    # Explain the selected spread immediately so new users understand
+    # what each card position means before starting the reading.
+    spread_info = SPREAD_DESCRIPTIONS[
+        st.session_state.spread
+    ]
+
+    with st.container(border=True):
+
+        st.markdown(
+            f"### 🃏 {st.session_state.spread} — How this reading works"
+        )
+
+        st.caption(
+            spread_info["purpose"]
+        )
+
+        for number, (position, explanation) in enumerate(
+            spread_info["positions"],
+            start=1,
+        ):
+
+            st.markdown(
+                f"**{number}. {position}** — {explanation}"
+            )
+
+        st.caption(
+            "🔮 Tarot is used here as a symbolic reflection tool, not as a guaranteed prediction of future events."
         )
 
     st.session_state.question = st.text_area(
@@ -2145,6 +2207,31 @@ if (
             "After your reading, you can copy "
             "the result into ChatGPT for a "
             "simpler interpretation."
+        )
+
+        st.markdown("**1 Card**")
+        st.markdown(
+            "- **Guidance** — Main symbolic message or energy to reflect on."
+        )
+
+        st.markdown("**3 Cards**")
+        st.markdown(
+            "- **Situation** — What is happening now\n"
+            "- **Challenge** — Main obstacle or difficulty\n"
+            "- **Guidance** — What to consider moving forward"
+        )
+
+        st.markdown("**5 Cards**")
+        st.markdown(
+            "- **Situation** — Current circumstances\n"
+            "- **Challenge** — Main obstacle or tension\n"
+            "- **Hidden Influence** — Something beneath the surface\n"
+            "- **Advice** — Practical/reflection message\n"
+            "- **Direction** — Symbolic direction going forward"
+        )
+
+        st.caption(
+            "🔮 Tarot is a symbolic reflection tool. It does not guarantee or predict exactly what will happen in the future."
         )
 
     st.write("")

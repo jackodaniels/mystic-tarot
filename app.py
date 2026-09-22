@@ -2,10 +2,11 @@ import base64
 import json
 import random
 import re
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 from PIL import Image
 
 
@@ -14,7 +15,7 @@ from PIL import Image
 # ============================================================
 
 st.set_page_config(
-    page_title="Berlin Tarot Reading",
+    page_title="MARGAUX Technology",
     page_icon="🔮",
     layout="wide",
 )
@@ -603,6 +604,9 @@ def initialize_session():
 
         "selected":
             [],
+
+        "selected_details":
+            {},
 
         "reading":
             [],
@@ -1309,6 +1313,8 @@ def start_tarot():
 
     st.session_state.selected = []
 
+    st.session_state.selected_details = {}
+
     st.session_state.reading = []
 
     st.session_state.phase = "tarot_select"
@@ -1324,22 +1330,52 @@ def toggle_card(card_index):
         ]
     )
 
+    # Unpick an already selected card.
     if card_index in st.session_state.selected:
 
         st.session_state.selected.remove(
             card_index
         )
 
+        st.session_state.selected_details.pop(
+            card_index,
+            None,
+        )
+
         return
 
+    # Pick a new card and immediately assign its orientation.
     if (
         len(st.session_state.selected)
         < maximum_cards
     ):
 
+        card = DECK[card_index]
+
+        orientation = random.choice(
+            [
+                "Upright",
+                "Reversed",
+            ]
+        )
+
+        meaning = (
+            card.get("upright", "")
+            if orientation == "Upright"
+            else card.get("reversed", "")
+        )
+
         st.session_state.selected.append(
             card_index
         )
+
+        st.session_state.selected_details[
+            card_index
+        ] = {
+            "name": card["name"],
+            "orientation": orientation,
+            "meaning": meaning,
+        }
 
 
 def reveal_tarot():
@@ -1355,45 +1391,38 @@ def reveal_tarot():
         st.session_state.selected,
     ):
 
-        card = DECK[index]
-
-        orientation = random.choice(
-            [
-                "Upright",
-                "Reversed",
-            ]
+        details = st.session_state.selected_details.get(
+            index
         )
 
-        if orientation == "Upright":
+        if not details:
 
-            meaning = card.get(
-                "upright",
-                ""
+            card = DECK[index]
+
+            orientation = random.choice(
+                [
+                    "Upright",
+                    "Reversed",
+                ]
             )
 
-        else:
-
-            meaning = card.get(
-                "reversed",
-                ""
-            )
+            details = {
+                "name": card["name"],
+                "orientation": orientation,
+                "meaning": (
+                    card.get("upright", "")
+                    if orientation == "Upright"
+                    else card.get("reversed", "")
+                ),
+            }
 
         reading.append(
             {
-                "position":
-                    position,
-
-                "pool_index":
-                    index,
-
-                "name":
-                    card["name"],
-
-                "orientation":
-                    orientation,
-
-                "meaning":
-                    meaning,
+                "position": position,
+                "pool_index": index,
+                "name": details["name"],
+                "orientation": details["orientation"],
+                "meaning": details["meaning"],
             }
         )
 
@@ -1465,6 +1494,8 @@ def reset_app():
 
     st.session_state.selected = []
 
+    st.session_state.selected_details = {}
+
     st.session_state.reading = []
 
     st.session_state.question = ""
@@ -1474,6 +1505,88 @@ def reset_app():
     st.session_state.zodiac = None
 
     st.session_state.error = ""
+
+
+# ============================================================
+# COPY BUTTON
+# ============================================================
+
+def render_copy_button(prompt, key):
+    """Render a simple one-click clipboard button."""
+
+    prompt_json = json.dumps(
+        prompt,
+        ensure_ascii=False,
+    )
+
+    component_html = f"""
+    <div style="
+        width:100%;
+        font-family:Arial,sans-serif;
+        text-align:center;
+        padding:4px 0;
+    ">
+        <button id="copyBtn_{key}" style="
+            width:100%;
+            min-height:48px;
+            border:0;
+            border-radius:10px;
+            background:linear-gradient(90deg,#745ca8,#9b78d0);
+            color:white;
+            font-size:16px;
+            font-weight:700;
+            cursor:pointer;
+            padding:12px 18px;
+        ">
+            📋 Copy Reading
+        </button>
+        <div id="status_{key}" style="
+            margin-top:7px;
+            color:#bdb0ce;
+            font-size:13px;
+            min-height:18px;
+        "></div>
+    </div>
+
+    <script>
+    const promptText_{key} = {prompt_json};
+    const button_{key} = document.getElementById("copyBtn_{key}");
+    const status_{key} = document.getElementById("status_{key}");
+
+    button_{key}.addEventListener("click", async () => {{
+        let copied = false;
+
+        try {{
+            await navigator.clipboard.writeText(promptText_{key});
+            copied = true;
+        }} catch (e) {{
+            try {{
+                const textarea = document.createElement("textarea");
+                textarea.value = promptText_{key};
+                textarea.style.position = "fixed";
+                textarea.style.left = "-9999px";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                copied = document.execCommand("copy");
+                textarea.remove();
+            }} catch (fallbackError) {{
+                copied = false;
+            }}
+        }}
+
+        status_{key}.textContent = copied
+            ? "✓ Copied to clipboard. Paste it into ChatGPT."
+            : "Copy was blocked by the browser. Please use the prompt below.";
+    }});
+    </script>
+    """
+
+    components.html(
+        component_html,
+        height=82,
+        scrolling=False,
+    )
 
 
 # ============================================================
@@ -1622,6 +1735,107 @@ else:
     st.warning(
         "Banner.png was not found. "
         "Place it at assets/tarot/Banner.png."
+    )
+
+
+def render_flip_card(
+    card_back,
+    card_image,
+    card_name,
+    orientation,
+    number,
+):
+    """Render a responsive 3D flip card. The front is shown after selection."""
+
+    back_bytes = card_back.read_bytes()
+    back_b64 = base64.b64encode(back_bytes).decode("ascii")
+
+    back_ext = card_back.suffix.lower()
+    back_mime = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+    }.get(back_ext, "image/png")
+
+    front_bytes = card_image.read_bytes()
+    front_b64 = base64.b64encode(front_bytes).decode("ascii")
+
+    front_ext = card_image.suffix.lower()
+    front_mime = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+    }.get(front_ext, "image/jpeg")
+
+    rotation = "rotate(180deg)" if orientation == "Reversed" else "none"
+
+    html = f"""
+    <style>
+        * {{ box-sizing: border-box; }}
+        body {{ margin:0; background:transparent; }}
+        .scene {{
+            width:100%;
+            height:300px;
+            perspective:1100px;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }}
+        .card {{
+            width:min(100%, 190px);
+            height:285px;
+            position:relative;
+            transform-style:preserve-3d;
+            transform:rotateY(360deg);
+            animation:flipIn .75s cubic-bezier(.2,.75,.2,1) both;
+        }}
+        .face {{
+            position:absolute;
+            inset:0;
+            backface-visibility:hidden;
+            -webkit-backface-visibility:hidden;
+            border-radius:14px;
+            overflow:hidden;
+            border:2px solid rgba(201,168,106,.75);
+            box-shadow:0 12px 30px rgba(0,0,0,.45);
+            background:#120a20;
+        }}
+        .face img {{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            display:block;
+        }}
+        .back {{ transform:rotateY(180deg); }}
+        .front img {{ transform:{rotation}; }}
+        @keyframes flipIn {{
+            from {{ transform:rotateY(0deg); }}
+            to {{ transform:rotateY(180deg); }}
+        }}
+        @media (max-width:700px) {{
+            .scene {{ height:240px; }}
+            .card {{ width:min(100%,145px); height:218px; }}
+        }}
+    </style>
+
+    <div class="scene">
+        <div class="card">
+            <div class="face front">
+                <img src="data:{front_mime};base64,{front_b64}" alt="{card_name}">
+            </div>
+            <div class="face back">
+                <img src="data:{back_mime};base64,{back_b64}" alt="Berlin Tarot card back">
+            </div>
+        </div>
+    </div>
+    """
+
+    components.html(
+        html,
+        height=315,
+        scrolling=False,
     )
 
 
@@ -1941,25 +2155,62 @@ elif (
                 in st.session_state.selected
             )
 
-            if card_back:
+            if selected:
 
-                st.image(
-                    str(card_back),
-                    use_container_width=True,
+                details = st.session_state.selected_details.get(
+                    card_index
+                )
+
+                card_image = (
+                    get_card_image(details["name"])
+                    if details
+                    else None
+                )
+
+                if card_back and card_image and details:
+
+                    render_flip_card(
+                        card_back,
+                        card_image,
+                        details["name"],
+                        details["orientation"],
+                        number,
+                    )
+
+                elif card_back:
+
+                    st.image(
+                        str(card_back),
+                        use_container_width=True,
+                    )
+
+                st.caption(
+                    f"Card {number} • {details['orientation']}"
+                    if details
+                    else f"Card {number}"
                 )
 
             else:
 
-                st.warning(
-                    "Berlin card-back image not found."
+                if card_back:
+
+                    st.image(
+                        str(card_back),
+                        use_container_width=True,
+                    )
+
+                else:
+
+                    st.warning(
+                        "Berlin card-back image not found."
+                    )
+
+                st.caption(
+                    f"Card {number} • Face-down"
                 )
 
-            st.caption(
-                f"Card {number}"
-            )
-
             button_text = (
-                "✓ Selected"
+                "↩ Unpick"
                 if selected
                 else "🃏 Pick"
             )
@@ -2014,6 +2265,8 @@ elif (
             )
 
             st.session_state.selected = []
+
+            st.session_state.selected_details = {}
 
             st.rerun()
 
@@ -2196,21 +2449,26 @@ elif (
     st.markdown("### 💬 Explain this with ChatGPT")
 
     st.write(
-        "Click the copy button, open ChatGPT, "
-        "paste the prompt, and send it. 🤖"
+        "Click the button to copy the complete reading, "
+        "then paste it into ChatGPT. 🤖"
     )
 
     tarot_prompt = create_tarot_chatgpt_prompt()
 
-    # st.code provides a built-in one-click copy button.
-    st.code(
+    render_copy_button(
         tarot_prompt,
-        language="text",
+        "tarot",
     )
 
-    st.info(
-        "📋 Click the copy icon on the prompt above, "
-        "then paste it into ChatGPT."
+    with st.expander("👁️ View the prompt before copying"):
+
+        st.code(
+            tarot_prompt,
+            language="text",
+        )
+
+    st.caption(
+        "Copied to your clipboard. Paste it into ChatGPT when ready."
     )
 
     st.divider()
@@ -2316,21 +2574,26 @@ elif (
     st.markdown("### 💬 Explain this with ChatGPT")
 
     st.write(
-        "Click the copy button, open ChatGPT, "
-        "paste the prompt, and send it. 🤖"
+        "Click the button to copy the complete reading, "
+        "then paste it into ChatGPT. 🤖"
     )
 
     horoscope_prompt = create_horoscope_chatgpt_prompt()
 
-    # st.code provides a built-in one-click copy button.
-    st.code(
+    render_copy_button(
         horoscope_prompt,
-        language="text",
+        "horoscope",
     )
 
-    st.info(
-        "📋 Click the copy icon on the prompt above, "
-        "then paste it into ChatGPT."
+    with st.expander("👁️ View the prompt before copying"):
+
+        st.code(
+            horoscope_prompt,
+            language="text",
+        )
+
+    st.caption(
+        "Copied to your clipboard. Paste it into ChatGPT when ready."
     )
 
     st.divider()

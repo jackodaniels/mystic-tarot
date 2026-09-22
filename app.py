@@ -15,7 +15,7 @@ from PIL import Image
 # ============================================================
 
 st.set_page_config(
-    page_title="Berlin Tarot Reading",
+    page_title="Margaux Technology",
     page_icon="🔮",
     layout="wide",
 )
@@ -1246,12 +1246,136 @@ st.markdown(
    MOBILE
    ============================================================ */
 
+/* ============================================================
+   RESPONSIVE / MOBILE
+   ============================================================ */
+
 @media (max-width: 900px) {
 
-    .hero h1 {
+    .block-container {
+        max-width: 100% !important;
+        padding: 0.75rem 0.65rem 2rem !important;
+    }
 
-        font-size:
-            2.2rem;
+    /* Let Streamlit columns wrap instead of forcing 8 cards
+       into an unusably narrow single row. */
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+        row-gap: 0.75rem !important;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        min-width: 0 !important;
+    }
+
+    .hero {
+        padding: 0 !important;
+        margin: 0 0 1rem 0 !important;
+    }
+
+    .hero img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        border-radius: 10px !important;
+        display: block !important;
+    }
+
+    .section-title {
+        font-size: 1.15rem !important;
+        margin-top: 0.8rem !important;
+    }
+
+    .info-box {
+        padding: 13px !important;
+        border-radius: 12px !important;
+    }
+
+    .zodiac-card {
+        padding: 18px 12px !important;
+        margin: 0.75rem 0 !important;
+    }
+
+    .zodiac-symbol {
+        font-size: 3rem !important;
+    }
+
+    .zodiac-name {
+        font-size: 1.45rem !important;
+    }
+
+    .horoscope-section {
+        padding: 14px !important;
+        margin: 0.7rem 0 !important;
+    }
+
+    /* Make Streamlit's input controls comfortable for touch. */
+    input, textarea, [role="combobox"] {
+        font-size: 16px !important;
+    }
+
+    button {
+        min-height: 44px !important;
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    /* Two cards per row on phones.
+       This applies to the 8-card Tarot deck and also keeps
+       the normal two-column form layout usable. */
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        flex: 0 0 calc(50% - 0.45rem) !important;
+        width: calc(50% - 0.45rem) !important;
+        max-width: calc(50% - 0.45rem) !important;
+    }
+
+    /* Single-column content blocks remain full width. */
+    .stMarkdown,
+    .stAlert {
+        max-width: 100%;
+    }
+
+    .card-back-wrapper,
+    .selected-wrapper {
+        padding: 4px !important;
+        border-radius: 12px !important;
+    }
+
+    .card-number {
+        font-size: 0.65rem !important;
+    }
+
+    .reading-card-title {
+        font-size: 1rem !important;
+    }
+
+    .meaning {
+        font-size: 0.88rem !important;
+    }
+
+}
+
+@media (max-width: 430px) {
+
+    .block-container {
+        padding-left: 0.45rem !important;
+        padding-right: 0.45rem !important;
+    }
+
+    /* Keep the two-card layout but use the available width efficiently. */
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        flex: 0 0 calc(50% - 0.3rem) !important;
+        width: calc(50% - 0.3rem) !important;
+        max-width: calc(50% - 0.3rem) !important;
+    }
+
+    .hero img {
+        border-radius: 8px !important;
     }
 
 }
@@ -1778,14 +1902,18 @@ def render_flip_card(
         .scene {{
             width:100%;
             height:300px;
+            padding:4px;
             perspective:1100px;
             display:flex;
             justify-content:center;
             align-items:center;
+            overflow:hidden;
         }}
         .card {{
             width:min(100%, 190px);
-            height:285px;
+            aspect-ratio:2 / 3;
+            height:auto;
+            max-height:285px;
             position:relative;
             transform-style:preserve-3d;
             transform:rotateY(360deg);
@@ -1818,8 +1946,12 @@ def render_flip_card(
             to {{ transform:rotateY(180deg); }}
         }}
         @media (max-width:700px) {{
-            .scene {{ height:240px; }}
-            .card {{ width:min(100%,145px); height:218px; }}
+            .scene {{ height:235px; }}
+            .card {{ width:min(100%,145px); aspect-ratio:2 / 3; height:auto; max-height:218px; }}
+        }}
+        @media (max-width:430px) {{
+            .scene {{ height:215px; }}
+            .card {{ width:min(100%,130px); aspect-ratio:2 / 3; height:auto; max-height:195px; }}
         }}
     </style>
 

@@ -1777,11 +1777,21 @@ def render_copy_button(prompt, key):
 # CHATGPT TAROT PROMPT
 # ============================================================
 
-def create_tarot_chatgpt_prompt():
+def create_tarot_chatgpt_prompt(language="English"):
+
+    language_instruction = {
+        "English": "Write the explanation in clear, natural English.",
+        "Tagalog": "Write the explanation in natural, easy-to-understand Filipino/Tagalog. Keep Tarot card names and standard Tarot terms in English when appropriate.",
+        "Cebuano": "Write the explanation in natural, easy-to-understand Cebuano/Bisaya. Keep Tarot card names and standard Tarot terms in English when appropriate.",
+    }.get(language, "Write the explanation in clear, natural English.")
 
     prompt = f"""
 Please explain this tarot reading in simple,
 easy-to-understand language.
+
+Preferred language: {language}
+
+{language_instruction}
 
 User name:
 {st.session_state.name}
@@ -1846,7 +1856,13 @@ established facts.
 # CHATGPT HOROSCOPE PROMPT
 # ============================================================
 
-def create_horoscope_chatgpt_prompt():
+def create_horoscope_chatgpt_prompt(language="English"):
+
+    language_instruction = {
+        "English": "Write the explanation in clear, natural English.",
+        "Tagalog": "Write the explanation in natural, easy-to-understand Filipino/Tagalog.",
+        "Cebuano": "Write the explanation in natural, easy-to-understand Cebuano/Bisaya.",
+    }.get(language, "Write the explanation in clear, natural English.")
 
     sign = (
         st.session_state.zodiac
@@ -1859,6 +1875,10 @@ def create_horoscope_chatgpt_prompt():
     prompt = f"""
 Please explain this horoscope in simple,
 easy-to-understand language.
+
+Preferred language: {language}
+
+{language_instruction}
 
 Name:
 {st.session_state.name}
@@ -2741,11 +2761,19 @@ elif (
         "then paste it into ChatGPT. 🤖"
     )
 
-    tarot_prompt = create_tarot_chatgpt_prompt()
+    tarot_language = st.selectbox(
+        "🌐 ChatGPT explanation language",
+        ["English", "Tagalog", "Cebuano"],
+        key="tarot_chatgpt_language",
+    )
+
+    tarot_prompt = create_tarot_chatgpt_prompt(
+        tarot_language
+    )
 
     render_copy_button(
         tarot_prompt,
-        "tarot",
+        f"tarot_{tarot_language.lower()}",
     )
 
     with st.expander("👁️ View the prompt before copying"):
@@ -2866,11 +2894,19 @@ elif (
         "then paste it into ChatGPT. 🤖"
     )
 
-    horoscope_prompt = create_horoscope_chatgpt_prompt()
+    horoscope_language = st.selectbox(
+        "🌐 ChatGPT explanation language",
+        ["English", "Tagalog", "Cebuano"],
+        key="horoscope_chatgpt_language",
+    )
+
+    horoscope_prompt = create_horoscope_chatgpt_prompt(
+        horoscope_language
+    )
 
     render_copy_button(
         horoscope_prompt,
-        "horoscope",
+        f"horoscope_{horoscope_language.lower()}",
     )
 
     with st.expander("👁️ View the prompt before copying"):

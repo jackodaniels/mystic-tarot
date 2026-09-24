@@ -3,6 +3,7 @@ import json
 import random
 import re
 import time
+import tempfile
 from datetime import date
 from pathlib import Path
 
@@ -43,6 +44,11 @@ CARD_BACK_FILENAMES = [
     "berlin-card-back.jpeg",
     "berlin-card-back.webp",
 ]
+
+# Built-in portrait fallback. This prevents a missing/wrong asset from
+# ever causing Banner.png to appear in the Tarot deck.
+EMBEDDED_CARD_BACK_B64 = """'+b64+'"""
+
 
 BANNER_FILENAMES = [
     "Banner.png",
@@ -233,11 +239,12 @@ def get_card_image(card_name):
 
 
 def get_card_back():
-    """Return only a portrait Tarot card-back image.
+    """Return a dedicated portrait Tarot card-back image only.
 
-    Never use the application banner as a card back. The card back
-    is required to be a dedicated portrait asset, ideally
-    assets/tarot/berlin-card-back.png.
+    Landscape assets (including Banner.png accidentally copied to the
+    card-back filename) are rejected. If no valid portrait asset exists,
+    a built-in Berlin 8-ball card back is written to the temp directory
+    and returned instead.
     """
 
     candidate_dirs = [IMAGE_DIR]
@@ -256,8 +263,7 @@ def get_card_back():
                 with Image.open(path) as img:
                     width, height = img.size
 
-                # Tarot backs must be portrait. Reject a landscape banner
-                # even if it was accidentally saved under the card-back name.
+                # Reject landscape images so Banner.png can never be used.
                 if height <= width:
                     continue
 
@@ -265,6 +271,21 @@ def get_card_back():
 
             except Exception:
                 continue
+
+    # Guaranteed portrait fallback for Streamlit Cloud / missing assets.
+    fallback_path = Path(tempfile.gettempdir()) / "berlin_tarot_card_back_fallback.png"
+
+    try:
+        if not fallback_path.exists():
+            fallback_path.write_bytes(
+                base64.b64decode(EMBEDDED_CARD_BACK_B64)
+            )
+        with Image.open(fallback_path) as img:
+            width, height = img.size
+        if height > width:
+            return fallback_path
+    except Exception:
+        pass
 
     return None
 
@@ -2735,6 +2756,7 @@ elif (
             use_container_width=True,
         ):
 
+            # Start a fresh three-pass shuffle animation again.
             st.session_state.pool = (
                 random.sample(
                     range(len(DECK)),
@@ -2748,6 +2770,8 @@ elif (
             st.session_state.selected = []
 
             st.session_state.selected_details = {}
+            st.session_state.reading = []
+            st.session_state.phase = "tarot_shuffle"
 
             st.rerun()
 

@@ -1,6 +1,5 @@
 import base64
 import json
-import os
 import random
 import re
 import time
@@ -21,147 +20,6 @@ st.set_page_config(
     page_icon="🔮",
     layout="wide",
 )
-
-
-# ============================================================
-# LOGIN / ACCESS CONTROL
-# ============================================================
-
-def get_login_accounts():
-    """Read one or more login accounts from Streamlit secrets or env vars."""
-
-    accounts = {}
-
-    # Preferred: multiple accounts in Streamlit Secrets.
-    try:
-        users = st.secrets.get("users", {})
-        if hasattr(users, "items"):
-            for username, password in users.items():
-                username = str(username).strip()
-                if username:
-                    accounts[username] = str(password)
-    except Exception:
-        pass
-
-    # Backward-compatible single-account formats.
-    env_username = os.getenv("LOGIN_USERNAME", "").strip()
-    env_password = os.getenv("LOGIN_PASSWORD", "")
-    if env_username and env_password:
-        accounts.setdefault(env_username, env_password)
-
-    try:
-        auth = st.secrets.get("auth", {})
-        username = str(auth.get("username", "")).strip()
-        password = str(auth.get("password", ""))
-        if username and password:
-            accounts.setdefault(username, password)
-    except Exception:
-        pass
-
-    return accounts
-
-
-def render_login():
-    """Render the mobile-friendly login screen."""
-
-    accounts = get_login_accounts()
-
-    st.markdown(
-        """
-        <style>
-        .login-wrap {
-            max-width: 460px;
-            margin: 8vh auto 0 auto;
-            padding: 24px;
-            text-align: center;
-            border: 1px solid rgba(201,168,106,.45);
-            border-radius: 24px;
-            background: rgba(18,10,32,.88);
-            box-shadow: 0 20px 55px rgba(0,0,0,.45);
-        }
-        .login-title {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 6px;
-        }
-        .login-subtitle {
-            color: #c9bfd5;
-            margin-bottom: 20px;
-        }
-        @media (max-width: 600px) {
-            .login-wrap {
-                width: 100%;
-                margin: 3vh auto 0 auto;
-                padding: 18px 14px;
-                border-radius: 18px;
-            }
-            .login-title {
-                font-size: 1.65rem;
-            }
-        }
-        </style>
-        <div class="login-wrap">
-            <div class="login-title">🔮 Berlin Tarot Reading</div>
-            <div class="login-subtitle">Private access · Please sign in to continue</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if not accounts:
-        st.error(
-            "Login credentials are not configured. Add a [users] section in Streamlit Secrets, "
-            "for example: [users]\nGuest001 = \"your-password\"."
-        )
-        st.stop()
-
-    with st.form("login_form", clear_on_submit=False):
-        entered_username = st.text_input(
-            "Username",
-            autocomplete="username",
-            placeholder="Enter username",
-        )
-        entered_password = st.text_input(
-            "Password",
-            type="password",
-            autocomplete="current-password",
-            placeholder="Enter password",
-        )
-        submitted = st.form_submit_button(
-            "🔐 Login",
-            type="primary",
-            use_container_width=True,
-        )
-
-    if submitted:
-        expected_password = accounts.get(entered_username.strip())
-        if expected_password is not None and entered_password == expected_password:
-            st.session_state.authenticated = True
-            st.session_state.login_user = entered_username.strip()
-            st.session_state.login_error = ""
-            st.rerun()
-        else:
-            st.session_state.login_error = "Invalid username or password."
-
-    if st.session_state.get("login_error"):
-        st.error(st.session_state.login_error)
-
-
-def require_login():
-    """Block the application until valid credentials are supplied."""
-
-    if "authenticated" not in st.session_state:
-        st.session_state.authenticated = False
-
-    if "login_error" not in st.session_state:
-        st.session_state.login_error = ""
-
-    if not st.session_state.authenticated:
-        render_login()
-        st.stop()
-
-
-require_login()
 
 
 # ============================================================
@@ -820,18 +678,6 @@ def initialize_session():
 
 
 initialize_session()
-
-
-# ============================================================
-# LOGOUT
-# ============================================================
-
-logout_col = st.columns([1, 1, 1])
-with logout_col[2]:
-    if st.button("🔒 Logout", use_container_width=True):
-        st.session_state.authenticated = False
-        st.session_state.login_error = ""
-        st.rerun()
 
 
 # ============================================================

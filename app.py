@@ -1447,12 +1447,19 @@ st.markdown(
     }
 
     /* Tarot card grid: ONLY this keyed container uses 4 columns.
-       This avoids relying on :has(), which is unreliable for Streamlit's
-       generated column wrappers on some mobile browsers. */
+       Keep the deck compact and centered instead of spreading the cards
+       across the entire page width. */
+    .st-key-tarot_card_grid {
+        width: 100% !important;
+        max-width: 780px !important;
+        margin: 0 auto !important;
+    }
+
     .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] {
         width: 100% !important;
         max-width: 100% !important;
-        gap: 0.2rem !important;
+        gap: 0.35rem !important;
+        row-gap: 0.35rem !important;
         flex-wrap: nowrap !important;
         overflow: visible !important;
     }
@@ -1467,6 +1474,11 @@ st.markdown(
 
     .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] iframe {
         width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* On phones, use all available width while preserving the 4-card row. */
+    .st-key-tarot_card_grid {
         max-width: 100% !important;
     }
 

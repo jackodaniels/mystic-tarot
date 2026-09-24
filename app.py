@@ -27,27 +27,44 @@ st.set_page_config(
 # LOGIN / ACCESS CONTROL
 # ============================================================
 
-def get_login_credentials():
-    """Read login credentials from Streamlit secrets or environment variables."""
+def get_login_accounts():
+    """Read one or more login accounts from Streamlit secrets or env vars."""
 
-    username = os.getenv("LOGIN_USERNAME", "")
-    password = os.getenv("LOGIN_PASSWORD", "")
+    accounts = {}
+
+    # Preferred: multiple accounts in Streamlit Secrets.
+    try:
+        users = st.secrets.get("users", {})
+        if hasattr(users, "items"):
+            for username, password in users.items():
+                username = str(username).strip()
+                if username:
+                    accounts[username] = str(password)
+    except Exception:
+        pass
+
+    # Backward-compatible single-account formats.
+    env_username = os.getenv("LOGIN_USERNAME", "").strip()
+    env_password = os.getenv("LOGIN_PASSWORD", "")
+    if env_username and env_password:
+        accounts.setdefault(env_username, env_password)
 
     try:
         auth = st.secrets.get("auth", {})
-        username = auth.get("username", username)
-        password = auth.get("password", password)
+        username = str(auth.get("username", "")).strip()
+        password = str(auth.get("password", ""))
+        if username and password:
+            accounts.setdefault(username, password)
     except Exception:
-        # Streamlit secrets may not exist during local development.
         pass
 
-    return str(username), str(password)
+    return accounts
 
 
 def render_login():
     """Render the mobile-friendly login screen."""
 
-    username, password = get_login_credentials()
+    accounts = get_login_accounts()
 
     st.markdown(
         """
@@ -91,10 +108,10 @@ def render_login():
         unsafe_allow_html=True,
     )
 
-    if not username or not password:
+    if not accounts:
         st.error(
-            "Login credentials are not configured. Set LOGIN_USERNAME and LOGIN_PASSWORD "
-            "in Streamlit Secrets before using the app."
+            "Login credentials are not configured. Add a [users] section in Streamlit Secrets, "
+            "for example: [users]\nGuest001 = \"your-password\"."
         )
         st.stop()
 
@@ -117,8 +134,10 @@ def render_login():
         )
 
     if submitted:
-        if entered_username == username and entered_password == password:
+        expected_password = accounts.get(entered_username.strip())
+        if expected_password is not None and entered_password == expected_password:
             st.session_state.authenticated = True
+            st.session_state.login_user = entered_username.strip()
             st.session_state.login_error = ""
             st.rerun()
         else:

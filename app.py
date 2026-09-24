@@ -1558,24 +1558,19 @@ st.markdown(
         min-width: 0 !important;
     }
 
-    /* Tarot grids: 4 cards per row on every phone.
-       This targets the 5-card and 8-card Tarot rows without
-       changing the two-column form/input rows. */
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(5)),
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(8)),
-    [data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(5)),
-    [data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(8)) {
-        column-gap: 0.35rem !important;
-        row-gap: 0.65rem !important;
+    /* Tarot/shuffle grids use exactly 4 columns on phones.
+       These are the only 4-column Streamlit blocks in the app. */
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(4)),
+    [data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) {
+        gap: 0.25rem !important;
+        flex-wrap: nowrap !important;
     }
 
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(5)) > [data-testid="stColumn"],
-    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(8)) > [data-testid="stColumn"],
-    [data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(5)) > div[data-testid="column"],
-    [data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(8)) > div[data-testid="column"] {
-        flex: 0 0 calc(25% - 0.28rem) !important;
-        width: calc(25% - 0.28rem) !important;
-        max-width: calc(25% - 0.28rem) !important;
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(4)) > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) > div[data-testid="column"] {
+        flex: 0 0 calc(25% - 0.1875rem) !important;
+        width: calc(25% - 0.1875rem) !important;
+        max-width: calc(25% - 0.1875rem) !important;
         min-width: 0 !important;
     }
 
@@ -2748,94 +2743,91 @@ elif (
         st.session_state.pool
     )
 
-    columns = st.columns(
-        8,
-        gap="small",
-    )
+    # Always render the 8-card selection as exactly 2 rows × 4 columns.
+    # This keeps the layout consistent across Android/iPhone screen sizes
+    # and avoids Streamlit collapsing the 8 columns into a single vertical list.
+    for row_start in range(0, len(pool), 4):
 
-    for number, (
-        column,
-        card_index
-    ) in enumerate(
-        zip(
-            columns,
-            pool
-        ),
-        start=1,
-    ):
+        row = pool[row_start:row_start + 4]
+        columns = st.columns(4, gap="small")
 
-        with column:
+        for number, (column, card_index) in enumerate(
+            zip(columns, row),
+            start=row_start + 1,
+        ):
 
-            selected = (
-                card_index
-                in st.session_state.selected
-            )
+            with column:
 
-            if selected:
-
-                details = st.session_state.selected_details.get(
+                selected = (
                     card_index
+                    in st.session_state.selected
                 )
 
-                card_image = (
-                    get_card_image(details["name"])
-                    if details
-                    else None
-                )
+                if selected:
 
-                if card_back and card_image and details:
-
-                    render_flip_card(
-                        card_back,
-                        card_image,
-                        details["name"],
-                        details["orientation"],
-                        number,
+                    details = st.session_state.selected_details.get(
+                        card_index
                     )
 
-                elif card_back:
+                    card_image = (
+                        get_card_image(details["name"])
+                        if details
+                        else None
+                    )
 
-                    render_static_card_back(card_back)
+                    if card_back and card_image and details:
 
-                st.caption(
-                    f"Card {number} • {details['orientation']}"
-                    if details
-                    else f"Card {number}"
-                )
+                        render_flip_card(
+                            card_back,
+                            card_image,
+                            details["name"],
+                            details["orientation"],
+                            number,
+                        )
 
-            else:
+                    elif card_back:
 
-                if card_back:
+                        render_static_card_back(card_back)
 
-                    render_static_card_back(card_back)
+                    st.caption(
+                        f"Card {number} • {details['orientation']}"
+                        if details
+                        else f"Card {number}"
+                    )
 
                 else:
 
-                    st.warning(
-                        "Berlin card-back image not found."
+                    if card_back:
+
+                        render_static_card_back(card_back)
+
+                    else:
+
+                        st.warning(
+                            "Berlin card-back image not found."
+                        )
+
+                    st.caption(
+                        f"Card {number} • Face-down"
                     )
 
-                st.caption(
-                    f"Card {number} • Face-down"
+                button_text = (
+                    "↩ Unpick"
+                    if selected
+                    else "🃏 Pick"
                 )
 
-            button_text = (
-                "↩ Unpick"
-                if selected
-                else "🃏 Pick"
-            )
+                if st.button(
+                    button_text,
+                    key=f"card_{card_index}",
+                    use_container_width=True,
+                ):
 
-            if st.button(
-                button_text,
-                key=f"card_{card_index}",
-                use_container_width=True,
-            ):
+                    toggle_card(
+                        card_index
+                    )
 
-                toggle_card(
-                    card_index
-                )
-
-                st.rerun()
+                    st.rerun()
 
     st.write("")
 

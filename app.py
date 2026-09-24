@@ -1373,75 +1373,27 @@ st.markdown(
 
 @media (max-width: 700px) {
 
-    /* Use the full phone viewport without horizontal scrolling. */
+    /* Use almost the entire phone viewport. */
     .block-container {
-        padding: 0.25rem 0.35rem 1rem !important;
-        width: 100% !important;
-        max-width: 100% !important;
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+        padding-top: 0.25rem !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
     }
 
-    [data-testid="stAppViewContainer"],
-    [data-testid="stAppViewContainer"] > .main,
-    [data-testid="stAppViewContainer"] > .main > div {
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: hidden !important;
-    }
-
-    /* Default mobile layout: two columns for normal form/content rows. */
-    [data-testid="stHorizontalBlock"] {
-        width: 100% !important;
-        max-width: 100% !important;
-        gap: 0.45rem !important;
-        flex-wrap: wrap !important;
-    }
-
+    /* Two cards per row on phones. */
     [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
     [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
-        flex: 0 0 calc(50% - 0.225rem) !important;
-        width: calc(50% - 0.225rem) !important;
-        max-width: calc(50% - 0.225rem) !important;
-        min-width: 0 !important;
+        flex: 0 0 calc(50% - 0.45rem) !important;
+        width: calc(50% - 0.45rem) !important;
+        max-width: calc(50% - 0.45rem) !important;
     }
 
-    /* Tarot card grid: ONLY this keyed container uses 4 columns.
-       This avoids relying on :has(), which is unreliable for Streamlit's
-       generated column wrappers on some mobile browsers. */
-    .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] {
-        width: 100% !important;
-        max-width: 100% !important;
-        gap: 0.2rem !important;
-        flex-wrap: nowrap !important;
-        overflow: visible !important;
-    }
-
-    .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] > div[data-testid="column"],
-    .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] [data-testid="column"] {
-        flex: 0 0 calc(25% - 0.15rem) !important;
-        width: calc(25% - 0.15rem) !important;
-        max-width: calc(25% - 0.15rem) !important;
-        min-width: 0 !important;
-    }
-
-    .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] iframe {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-
-    /* Inputs/buttons stay full width inside their parent column. */
+    /* Single-column content blocks remain full width. */
     .stMarkdown,
-    .stAlert,
-    .stButton,
-    .stSelectbox,
-    .stTextInput,
-    .stDateInput,
-    .stTextArea {
-        max-width: 100% !important;
-    }
-
-    button {
-        width: 100% !important;
-        min-height: 44px !important;
+    .stAlert {
+        max-width: 100%;
     }
 
     .card-back-wrapper,
@@ -1462,19 +1414,29 @@ st.markdown(
         font-size: 0.88rem !important;
     }
 
-    .hero,
-    .hero img {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+}
+
+@media (max-width: 430px) {
+
+    .block-container {
+        padding-left: 0.15rem !important;
+        padding-right: 0.15rem !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+
+    /* Keep the two-card layout but use the available width efficiently. */
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        flex: 0 0 calc(50% - 0.3rem) !important;
+        width: calc(50% - 0.3rem) !important;
+        max-width: calc(50% - 0.3rem) !important;
     }
 
     .hero img {
-        display: block !important;
-        height: auto !important;
         border-radius: 8px !important;
     }
+
 }
 
 </style>
@@ -1980,121 +1942,6 @@ else:
     )
 
 
-def render_static_card_back(card_back):
-    """Render a face-down card at the original portrait size."""
-
-    image_bytes = card_back.read_bytes()
-    image_b64 = base64.b64encode(image_bytes).decode("ascii")
-
-    ext = card_back.suffix.lower()
-    mime = {
-        ".png": "image/png",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".webp": "image/webp",
-    }.get(ext, "image/png")
-
-    html = f"""
-    <style>
-        * {{ box-sizing: border-box; }}
-        body {{ margin: 0; background: transparent; }}
-        .static-card-scene {{
-            width: 100%;
-            height: 208px;
-            padding: 2px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }}
-        .static-card-back {{
-            width: min(100%, 120px);
-            height: auto;
-            aspect-ratio: 120 / 198;
-            flex: 0 1 120px;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 2px solid rgba(201,168,106,.75);
-            box-shadow: 0 10px 24px rgba(0,0,0,.42);
-        }}
-        .static-card-back img {{
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }}
-    </style>
-    <div class="static-card-scene">
-        <div class="static-card-back">
-            <img src="data:{mime};base64,{image_b64}" alt="Berlin Tarot card back">
-        </div>
-    </div>
-    """
-
-    components.html(
-        html,
-        height=212,
-        scrolling=False,
-    )
-
-
-def render_result_card_image(image_path, alt_text):
-    """Render a result card at one consistent portrait size on desktop and mobile."""
-
-    image_bytes = image_path.read_bytes()
-    image_b64 = base64.b64encode(image_bytes).decode("ascii")
-    ext = image_path.suffix.lower()
-    mime = {
-        ".png": "image/png",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".webp": "image/webp",
-    }.get(ext, "image/jpeg")
-
-    html = f"""
-    <style>
-        * {{ box-sizing: border-box; }}
-        body {{ margin:0; background:transparent; }}
-        .result-scene {{
-            width:100%;
-            height:206px;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            overflow:hidden;
-        }}
-        .result-card {{
-            width:min(100%, 120px);
-            height:auto;
-            aspect-ratio:120 / 198;
-            flex:0 1 120px;
-            border-radius:10px;
-            overflow:hidden;
-            border:2px solid rgba(201,168,106,.75);
-            box-shadow:0 10px 24px rgba(0,0,0,.42);
-            background:#120a20;
-        }}
-        .result-card img {{
-            width:100%;
-            height:100%;
-            object-fit:cover;
-            display:block;
-        }}
-    </style>
-    <div class="result-scene">
-        <div class="result-card">
-            <img src="data:{mime};base64,{image_b64}" alt="{alt_text}">
-        </div>
-    </div>
-    """
-
-    components.html(
-        html,
-        height=210,
-        scrolling=False,
-    )
-
-
 def render_flip_card(
     card_back,
     card_image,
@@ -2136,7 +1983,7 @@ def render_flip_card(
         body {{ margin:0; background:transparent; }}
         .scene {{
             width:100%;
-            height:208px;
+            height:300px;
             padding:4px;
             perspective:1100px;
             display:flex;
@@ -2145,10 +1992,10 @@ def render_flip_card(
             overflow:hidden;
         }}
         .card {{
-            width:min(100%, 120px);
+            width:min(100%, 190px);
+            aspect-ratio:2 / 3;
             height:auto;
-            aspect-ratio:120 / 198;
-            flex:0 1 120px;
+            max-height:285px;
             position:relative;
             transform-style:preserve-3d;
             transform:rotateY(360deg);
@@ -2180,6 +2027,14 @@ def render_flip_card(
             from {{ transform:rotateY(0deg); }}
             to {{ transform:rotateY(180deg); }}
         }}
+        @media (max-width:700px) {{
+            .scene {{ height:235px; }}
+            .card {{ width:min(100%,145px); aspect-ratio:2 / 3; height:auto; max-height:218px; }}
+        }}
+        @media (max-width:430px) {{
+            .scene {{ height:215px; }}
+            .card {{ width:min(100%,130px); aspect-ratio:2 / 3; height:auto; max-height:195px; }}
+        }}
     </style>
 
     <div class="scene">
@@ -2196,7 +2051,7 @@ def render_flip_card(
 
     components.html(
         html,
-        height=212,
+        height=315,
         scrolling=False,
     )
 
@@ -2526,7 +2381,10 @@ elif (
 
                         with column:
 
-                            render_static_card_back(card_back)
+                            st.image(
+                                str(card_back),
+                                use_container_width=True,
+                            )
 
                             st.caption(
                                 f"Card {position}"
@@ -2597,95 +2455,100 @@ elif (
         st.session_state.pool
     )
 
-    # Exactly 8 cards: 2 rows x 4 columns.
-    # The keyed container lets the mobile CSS target only this grid,
-    # without changing the rest of the app's 2-column form layout.
-    tarot_grid = st.container(key="tarot_card_grid")
+    columns = st.columns(
+        8,
+        gap="small",
+    )
 
-    with tarot_grid:
+    for number, (
+        column,
+        card_index
+    ) in enumerate(
+        zip(
+            columns,
+            pool
+        ),
+        start=1,
+    ):
 
-        for row_start in range(0, len(pool), 4):
+        with column:
 
-            row = pool[row_start:row_start + 4]
-            columns = st.columns(4, gap="small")
+            selected = (
+                card_index
+                in st.session_state.selected
+            )
 
-            for number, (column, card_index) in enumerate(
-                zip(columns, row),
-                start=row_start + 1,
+            if selected:
+
+                details = st.session_state.selected_details.get(
+                    card_index
+                )
+
+                card_image = (
+                    get_card_image(details["name"])
+                    if details
+                    else None
+                )
+
+                if card_back and card_image and details:
+
+                    render_flip_card(
+                        card_back,
+                        card_image,
+                        details["name"],
+                        details["orientation"],
+                        number,
+                    )
+
+                elif card_back:
+
+                    st.image(
+                        str(card_back),
+                        use_container_width=True,
+                    )
+
+                st.caption(
+                    f"Card {number} • {details['orientation']}"
+                    if details
+                    else f"Card {number}"
+                )
+
+            else:
+
+                if card_back:
+
+                    st.image(
+                        str(card_back),
+                        use_container_width=True,
+                    )
+
+                else:
+
+                    st.warning(
+                        "Berlin card-back image not found."
+                    )
+
+                st.caption(
+                    f"Card {number} • Face-down"
+                )
+
+            button_text = (
+                "↩ Unpick"
+                if selected
+                else "🃏 Pick"
+            )
+
+            if st.button(
+                button_text,
+                key=f"card_{card_index}",
+                use_container_width=True,
             ):
 
-                with column:
+                toggle_card(
+                    card_index
+                )
 
-                    selected = (
-                        card_index
-                        in st.session_state.selected
-                    )
-
-                    if selected:
-
-                        details = st.session_state.selected_details.get(
-                            card_index
-                        )
-
-                        card_image = (
-                            get_card_image(details["name"])
-                            if details
-                            else None
-                        )
-
-                        if card_back and card_image and details:
-
-                            render_flip_card(
-                                card_back,
-                                card_image,
-                                details["name"],
-                                details["orientation"],
-                                number,
-                            )
-
-                        elif card_back:
-
-                            render_static_card_back(card_back)
-
-                        st.caption(
-                            f"Card {number} • {details['orientation']}"
-                            if details
-                            else f"Card {number}"
-                        )
-
-                    else:
-
-                        if card_back:
-
-                            render_static_card_back(card_back)
-
-                        else:
-
-                            st.warning(
-                                "Berlin card-back image not found."
-                            )
-
-                        st.caption(
-                            f"Card {number} • Face-down"
-                        )
-
-                    button_text = (
-                        "↩ Unpick"
-                        if selected
-                        else "🃏 Pick"
-                    )
-
-                    if st.button(
-                        button_text,
-                        key=f"card_{card_index}",
-                        use_container_width=True,
-                    ):
-
-                        toggle_card(
-                            card_index
-                        )
-
-                        st.rerun()
+                st.rerun()
 
     st.write("")
 
@@ -2805,9 +2668,9 @@ elif (
                         # Always show the physical Tarot artwork upright.
                         # Reversed is indicated by the orientation label and
                         # uses the reversed meaning from the deck data.
-                        render_result_card_image(
-                            image_path,
-                            card["name"],
+                        st.image(
+                            str(image_path),
+                            use_container_width=True,
                         )
 
                     else:
@@ -2832,9 +2695,9 @@ elif (
 
                     if card_back := get_card_back():
 
-                        render_result_card_image(
-                            card_back,
-                            "Berlin Tarot card back",
+                        st.image(
+                            str(card_back),
+                            use_container_width=True,
                         )
 
                     else:

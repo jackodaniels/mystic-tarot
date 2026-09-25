@@ -1323,6 +1323,21 @@ st.markdown(
    MOBILE
    ============================================================ */
 
+/* Keep Streamlit chrome out of the way so the app fills the phone screen. */
+#MainMenu,
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+footer {
+    visibility: hidden !important;
+    height: 0 !important;
+}
+
+header {
+    visibility: hidden !important;
+    height: 0 !important;
+}
+
 /* ============================================================
    RESPONSIVE / MOBILE
    ============================================================ */
@@ -1480,6 +1495,49 @@ st.markdown(
     /* On phones, use all available width while preserving the 4-card row. */
     .st-key-tarot_card_grid {
         max-width: 100% !important;
+    }
+
+    /* Tarot result grid: keep cards readable on phones.
+       The 8-card picker stays 4-per-row, but result cards use 2-per-row
+       so names, orientation labels, and images never collapse vertically. */
+    .st-key-tarot_result_grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+    }
+
+    .st-key-tarot_result_grid [data-testid="stHorizontalBlock"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 0.65rem !important;
+        row-gap: 0.75rem !important;
+        flex-wrap: wrap !important;
+        overflow: visible !important;
+    }
+
+    .st-key-tarot_result_grid [data-testid="stHorizontalBlock"] > div[data-testid="column"],
+    .st-key-tarot_result_grid [data-testid="stHorizontalBlock"] [data-testid="column"] {
+        flex: 0 0 calc(50% - 0.325rem) !important;
+        width: calc(50% - 0.325rem) !important;
+        max-width: calc(50% - 0.325rem) !important;
+        min-width: 0 !important;
+    }
+
+    .st-key-tarot_result_grid .reading-card {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 10px !important;
+    }
+
+    .st-key-tarot_result_grid .reading-card-title {
+        font-size: 0.95rem !important;
+        line-height: 1.25 !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .st-key-tarot_result_grid .meaning {
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
     }
 
     /* Keep all normal two-column form fields evenly aligned. */
@@ -2908,71 +2966,81 @@ elif (
     st.markdown("### 🃏 Your selected cards")
     st.caption("Your selected cards have been flipped in place. The other cards remain face-down.")
 
-    # Desktop: 8 columns. Streamlit automatically wraps on smaller screens.
-    columns = st.columns(8, gap="small")
+    # Keep the result cards in a readable grid.
+    # Desktop: 4 columns. Mobile: the CSS above reduces this to 2 columns.
+    result_grid = st.container(key="tarot_result_grid")
 
-    for number, (column, card_index) in enumerate(
-        zip(columns, pool),
-        start=1,
-    ):
+    with result_grid:
 
-        with column:
+        for row_start in range(0, len(pool), 4):
 
-            revealed = card_index in revealed_by_index
+            row = pool[row_start:row_start + 4]
+            columns = st.columns(4, gap="small")
 
-            if revealed:
+            for number, (column, card_index) in enumerate(
+                zip(columns, row),
+                start=row_start + 1,
+            ):
 
-                card = revealed_by_index[card_index]
-                image_path = get_card_image(card["name"])
+                with column:
 
-                with st.container(border=True):
+                    revealed = card_index in revealed_by_index
 
-                    st.caption(f"Card {number}")
+                    if revealed:
 
-                    if image_path:
+                        card = revealed_by_index[card_index]
+                        image_path = get_card_image(card["name"])
 
-                        # Always show the physical Tarot artwork upright.
-                        # Reversed is indicated by the orientation label and
-                        # uses the reversed meaning from the deck data.
-                        render_result_card_image(
-                            image_path,
-                            card["name"],
-                        )
+                        with st.container(border=True):
 
-                    else:
+                            st.caption(f"Card {number}")
 
-                        st.error(
-                            f"Image not found for {card['name']}"
-                        )
+                            if image_path:
 
-                    st.markdown(
-                        f"**{card['name']}**"
-                    )
+                                # Always show the physical Tarot artwork upright.
+                                # Reversed is indicated by the orientation label and
+                                # uses the reversed meaning from the deck data.
+                                render_result_card_image(
+                                    image_path,
+                                    card["name"],
+                                )
 
-                    st.caption(
-                        f"✦ {card['orientation']} ✦"
-                    )
+                            else:
 
-            else:
+                                st.warning(
+                                    f"Image unavailable for {card['name']}"
+                                )
 
-                with st.container(border=True):
+                            st.markdown(
+                                f"**{card['name']}**"
+                            )
 
-                    st.caption(f"Card {number}")
-
-                    if card_back := get_card_back():
-
-                        render_result_card_image(
-                            card_back,
-                            "Berlin Tarot card back",
-                        )
+                            st.caption(
+                                f"✦ {card['orientation']} ✦"
+                            )
 
                     else:
 
-                        st.warning(
-                            "Card back not found."
-                        )
+                        with st.container(border=True):
 
-                    st.caption("Face-down")
+                            st.caption(f"Card {number}")
+
+                            card_back_result = get_card_back()
+
+                            if card_back_result:
+
+                                render_result_card_image(
+                                    card_back_result,
+                                    "Berlin Tarot card back",
+                                )
+
+                            else:
+
+                                st.warning(
+                                    "Card back unavailable."
+                                )
+
+                            st.caption("Face-down")
 
     # ========================================================
     # INTERPRETATION

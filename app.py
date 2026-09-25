@@ -2003,6 +2003,40 @@ header {
     opacity: 1 !important;
 }
 
+/* Visible category/spread choices: avoid dropdowns and improve mobile touch targets. */
+.st-key-tarot_setup_form [data-testid="stRadio"] {
+    margin-bottom: 0.55rem !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.45rem 0.5rem !important;
+    align-items: stretch !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label {
+    flex: 1 1 auto !important;
+    min-width: 120px !important;
+    margin: 0 !important;
+    padding: 0.65rem 0.8rem !important;
+    border: 1px solid rgba(182, 156, 255, 0.28) !important;
+    border-radius: 12px !important;
+    background: rgba(28, 18, 49, 0.72) !important;
+    color: #f5f2ff !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label span {
+    color: #f5f2ff !important;
+    -webkit-text-fill-color: #f5f2ff !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
+    border-color: #a98cff !important;
+    background: rgba(116, 92, 168, 0.34) !important;
+    box-shadow: 0 0 0 1px rgba(169, 140, 255, 0.25) !important;
+}
+
 /* Keep the category/spread values and dropdown chevrons centered and readable. */
 .st-key-tarot_setup_form [data-testid="stSelectbox"] [data-baseweb="select"] span,
 .st-key-tarot_setup_form [data-testid="stSelectbox"] [data-baseweb="select"] div {
@@ -2809,41 +2843,41 @@ if (
                 max_value=date.today(),
             )
 
-        col1, col2 = st.columns(2, gap="medium")
+        # Use visible radio choices instead of dropdowns.
+        # This keeps all options visible and is much easier to use on phones.
+        category_options = list(CATEGORIES.keys())
+        spread_options = list(SPREADS.keys())
 
-        with col1:
+        category_index = (
+            category_options.index(st.session_state.category)
+            if st.session_state.category in category_options
+            else 0
+        )
 
-            selected_category = st.selectbox(
-                "Reading category",
-                list(CATEGORIES.keys()),
-                index=(
-                    list(CATEGORIES.keys()).index(
-                        st.session_state.category
-                    )
-                    if st.session_state.category in CATEGORIES
-                    else 0
-                ),
-                key="tarot_category",
-            )
+        spread_index = (
+            spread_options.index(st.session_state.spread)
+            if st.session_state.spread in spread_options
+            else 1
+        )
 
-        with col2:
+        selected_category = st.radio(
+            "Reading category",
+            category_options,
+            index=category_index,
+            key="tarot_category",
+            horizontal=True,
+        )
 
-            selected_spread = st.selectbox(
-                "Spread",
-                list(SPREADS.keys()),
-                index=(
-                    list(SPREADS.keys()).index(
-                        st.session_state.spread
-                    )
-                    if st.session_state.spread in SPREADS
-                    else 1
-                ),
-                key="tarot_spread",
-            )
+        selected_spread = st.radio(
+            "Spread",
+            spread_options,
+            index=spread_index,
+            key="tarot_spread",
+            horizontal=True,
+        )
 
-        # Persist the selected values in app state.
-        # Do not write back to the widget keys after the widgets are created;
-        # Streamlit forbids modifying a keyed widget after instantiation.
+        # Persist the selected values in app state. We intentionally do not
+        # modify the widget keys after their widgets have been created.
         st.session_state.category = selected_category
         st.session_state.spread = selected_spread
 

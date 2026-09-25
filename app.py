@@ -1482,6 +1482,78 @@ st.markdown(
         max-width: 100% !important;
     }
 
+    /* Keep all normal two-column form fields evenly aligned. */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        align-items: flex-start !important;
+        column-gap: 0.75rem !important;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        flex: 1 1 0 !important;
+        width: 0 !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    /* Make labels clearly readable on the dark theme. */
+    [data-testid="stWidgetLabel"],
+    [data-testid="stWidgetLabel"] *,
+    [data-testid="stTextInput"] label,
+    [data-testid="stDateInput"] label,
+    [data-testid="stSelectbox"] label,
+    [data-testid="stTextArea"] label {
+        color: #e9e1f7 !important;
+        opacity: 1 !important;
+        font-weight: 600 !important;
+    }
+
+    /* Bright, high-contrast values and placeholders inside mobile fields. */
+    [data-testid="stTextInput"] input,
+    [data-testid="stDateInput"] input,
+    [data-testid="stTextArea"] textarea,
+    [data-baseweb="select"] > div {
+        background: #f7f8fc !important;
+        color: #171222 !important;
+        -webkit-text-fill-color: #171222 !important;
+        opacity: 1 !important;
+    }
+
+    [data-testid="stTextInput"] input::placeholder,
+    [data-testid="stDateInput"] input::placeholder,
+    [data-testid="stTextArea"] textarea::placeholder {
+        color: #5f6470 !important;
+        -webkit-text-fill-color: #5f6470 !important;
+        opacity: 1 !important;
+    }
+
+    [data-baseweb="select"] [data-testid="stMarkdownContainer"],
+    [data-baseweb="select"] span,
+    [data-baseweb="select"] div {
+        color: #171222 !important;
+        opacity: 1 !important;
+    }
+
+    /* Consistent field height/alignment on phones. */
+    [data-testid="stTextInput"] input,
+    [data-testid="stDateInput"] input {
+        min-height: 52px !important;
+        box-sizing: border-box !important;
+    }
+
+    [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+        min-height: 52px !important;
+        box-sizing: border-box !important;
+    }
+
+    [data-testid="stTextArea"] textarea {
+        min-height: 120px !important;
+        box-sizing: border-box !important;
+    }
+
     /* Inputs/buttons stay full width inside their parent column. */
     .stMarkdown,
     .stAlert,

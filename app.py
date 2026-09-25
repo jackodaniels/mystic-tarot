@@ -1557,6 +1557,57 @@ header {
         padding-right: 0 !important;
     }
 
+    /* IMPORTANT: re-assert special grids after the general column rule above.
+       Streamlit's generated column CSS can otherwise override the mobile
+       result/picker layouts and collapse cards into unreadable narrow columns. */
+    .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 0.35rem !important;
+        row-gap: 0.35rem !important;
+    }
+
+    .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    .st-key-tarot_card_grid [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        flex: 0 0 calc(25% - 0.2625rem) !important;
+        width: calc(25% - 0.2625rem) !important;
+        max-width: calc(25% - 0.2625rem) !important;
+        min-width: 0 !important;
+    }
+
+    /* Result cards use 2 columns on phones for readable names/orientation. */
+    .st-key-tarot_result_grid [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.65rem !important;
+        row-gap: 0.8rem !important;
+        align-items: stretch !important;
+    }
+
+    .st-key-tarot_result_grid [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    .st-key-tarot_result_grid [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        flex: 0 0 calc(50% - 0.325rem) !important;
+        width: calc(50% - 0.325rem) !important;
+        max-width: calc(50% - 0.325rem) !important;
+        min-width: 0 !important;
+    }
+
+    .st-key-tarot_result_grid .stVerticalBlock,
+    .st-key-tarot_result_grid [data-testid="stVerticalBlock"] {
+        min-width: 0 !important;
+    }
+
+    .st-key-tarot_result_grid [data-testid="stImage"],
+    .st-key-tarot_result_grid img {
+        max-width: 100% !important;
+    }
+
+    /* Make result card metadata readable and stable on narrow screens. */
+    .st-key-tarot_result_grid [data-testid="stMarkdownContainer"] {
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
+    }
+
     /* Make labels clearly readable on the dark theme. */
     [data-testid="stWidgetLabel"],
     [data-testid="stWidgetLabel"] *,
@@ -1835,6 +1886,25 @@ def reveal_tarot():
     st.session_state.reading = reading
 
     st.session_state.phase = "tarot_result"
+
+
+def redraw_same_tarot():
+    """Draw a fresh 8-card pool while keeping the user's question, spread, and profile."""
+    st.session_state.pool = random.sample(
+        range(len(DECK)),
+        min(8, len(DECK)),
+    )
+    st.session_state.selected = []
+    st.session_state.selected_details = {}
+    st.session_state.reading = []
+    st.session_state.error = ""
+    st.session_state.phase = "tarot_shuffle"
+
+
+def back_to_tarot_selection():
+    """Return to the same 8-card pool so the user can change selections."""
+    st.session_state.error = ""
+    st.session_state.phase = "tarot_select"
 
 
 # ============================================================
@@ -2481,6 +2551,21 @@ if (
             )
         )
 
+    spread_info = SPREAD_DESCRIPTIONS[
+        st.session_state.spread
+    ]
+
+    with st.container(border=True):
+        st.markdown(
+            f"**{st.session_state.spread} — "
+            f"{spread_info['purpose']}**"
+        )
+
+        for position, description in spread_info["positions"]:
+            st.caption(
+                f"• **{position}:** {description}"
+            )
+
     st.session_state.question = st.text_area(
         "Your question",
         value=(
@@ -2897,24 +2982,7 @@ elif (
             "↻ Reshuffle 8 Cards",
             use_container_width=True,
         ):
-
-            # Start a fresh three-pass shuffle animation again.
-            st.session_state.pool = (
-                random.sample(
-                    range(len(DECK)),
-                    min(
-                        8,
-                        len(DECK)
-                    ),
-                )
-            )
-
-            st.session_state.selected = []
-
-            st.session_state.selected_details = {}
-            st.session_state.reading = []
-            st.session_state.phase = "tarot_shuffle"
-
+            redraw_same_tarot()
             st.rerun()
 
 
@@ -3083,10 +3151,32 @@ elif (
         )
 
     # ========================================================
-    # CHATGPT
+    # READING ACTIONS
     # ========================================================
 
+    action1, action2 = st.columns(2)
+
+    with action1:
+        if st.button(
+            "↩ Change My Cards",
+            use_container_width=True,
+        ):
+            back_to_tarot_selection()
+            st.rerun()
+
+    with action2:
+        if st.button(
+            "🔄 Draw 8 New Cards",
+            use_container_width=True,
+        ):
+            redraw_same_tarot()
+            st.rerun()
+
     st.divider()
+
+    # ========================================================
+    # CHATGPT
+    # ========================================================
 
     st.markdown("### 💬 Explain this with ChatGPT")
 

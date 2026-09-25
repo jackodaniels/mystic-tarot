@@ -710,6 +710,11 @@ def initialize_session():
         "error":
             "",
 
+        # Tarot categories that have already produced a completed reading
+        # during this browser session. A category may be used only once.
+        "tarot_used_categories":
+            [],
+
     }
 
     for key, value in defaults.items():
@@ -1320,6 +1325,83 @@ st.markdown(
 
 
 /* ============================================================
+   FORM + BUTTON ACCESSIBILITY / ALIGNMENT
+   ============================================================ */
+
+/* Keep all Streamlit action-button text visible on the dark theme. */
+[data-testid="stButton"] > button,
+[data-testid="stBaseButton-primary"],
+[data-testid="stBaseButton-secondary"] {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    opacity: 1 !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+}
+
+[data-testid="stButton"] > button *,
+[data-testid="stBaseButton-primary"] *,
+[data-testid="stBaseButton-secondary"] * {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+[data-testid="stButton"] > button:disabled,
+[data-testid="stBaseButton-primary"]:disabled,
+[data-testid="stBaseButton-secondary"]:disabled {
+    opacity: 1 !important;
+}
+
+[data-testid="stButton"] > button:disabled *,
+[data-testid="stBaseButton-primary"]:disabled *,
+[data-testid="stBaseButton-secondary"]:disabled * {
+    color: #bfb7ca !important;
+    -webkit-text-fill-color: #bfb7ca !important;
+}
+
+/* Keep form labels and controls aligned in paired columns. */
+[data-testid="stTextInput"],
+[data-testid="stDateInput"],
+[data-testid="stSelectbox"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+[data-testid="stTextInput"] label,
+[data-testid="stDateInput"] label,
+[data-testid="stSelectbox"] label {
+    min-height: 1.7rem !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    margin-bottom: 0.35rem !important;
+}
+
+[data-testid="stTextInput"] input,
+[data-testid="stDateInput"] input,
+[data-testid="stSelectbox"] [data-baseweb="select"] > div {
+    min-height: 52px !important;
+    box-sizing: border-box !important;
+}
+
+[data-testid="stTextArea"] label {
+    min-height: 1.7rem !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    margin-bottom: 0.35rem !important;
+}
+
+/* Keep dropdown text visible and high-contrast. */
+[data-testid="stSelectbox"] [data-baseweb="select"],
+[data-testid="stSelectbox"] [data-baseweb="select"] * {
+    color: #171222 !important;
+    -webkit-text-fill-color: #171222 !important;
+    opacity: 1 !important;
+}
+
+/* ============================================================
    MOBILE
    ============================================================ */
 
@@ -1724,6 +1806,20 @@ header {
 
 def start_tarot():
 
+    # Only one completed Tarot reading is allowed per category per
+    # browser session. Users can still reshuffle the same pending
+    # reading before they reveal it.
+    category = st.session_state.category
+
+    if category in st.session_state.tarot_used_categories:
+
+        st.session_state.error = (
+            f"Only one Tarot reading is allowed for {category} "
+            "in this session. Please choose another category."
+        )
+
+        return
+
     question = (
         st.session_state.question
         .strip()
@@ -1884,6 +1980,11 @@ def reveal_tarot():
         )
 
     st.session_state.reading = reading
+
+    category = st.session_state.category
+
+    if category not in st.session_state.tarot_used_categories:
+        st.session_state.tarot_used_categories.append(category)
 
     st.session_state.phase = "tarot_result"
 
@@ -2555,6 +2656,21 @@ if (
         st.session_state.spread
     ]
 
+    used_categories = st.session_state.tarot_used_categories
+
+    if used_categories:
+        st.info(
+            "🔒 Categories already used in this session: "
+            + ", ".join(used_categories)
+            + ". Each category can be generated only once."
+        )
+
+    if st.session_state.category in used_categories:
+        st.warning(
+            f"{st.session_state.category} has already been generated. "
+            "Choose another category to create a new Tarot reading."
+        )
+
     with st.container(border=True):
         st.markdown(
             f"**{st.session_state.spread} — "
@@ -2642,6 +2758,11 @@ if (
         )
 
     st.write("")
+
+    st.caption(
+        "🔐 Each Tarot category can be generated only once per browser session. "
+        "You can choose another category after completing a reading."
+    )
 
     if st.button(
         "✨ Start & Shuffle the Deck",
@@ -3166,10 +3287,10 @@ elif (
 
     with action2:
         if st.button(
-            "🔄 Draw 8 New Cards",
+            "🔄 Choose Another Category",
             use_container_width=True,
         ):
-            redraw_same_tarot()
+            reset_app()
             st.rerun()
 
     st.divider()

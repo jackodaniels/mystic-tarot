@@ -1794,6 +1794,184 @@ header {
     }
 }
 
+
+
+/* ============================================================
+   FINAL MOBILE UX OVERRIDES
+   ============================================================ */
+
+/* Streamlit theme can fall back to white buttons on some devices.
+   Explicitly style every native Streamlit button so labels remain visible. */
+[data-testid="stButton"] > button {
+    background: #181525 !important;
+    background-color: #181525 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border: 1px solid rgba(190, 167, 235, 0.35) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,.22) !important;
+    opacity: 1 !important;
+    min-height: 44px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+}
+
+[data-testid="stButton"] > button:hover {
+    background: #241b38 !important;
+    background-color: #241b38 !important;
+    border-color: rgba(208, 184, 255, 0.6) !important;
+}
+
+[data-testid="stButton"] > button:focus,
+[data-testid="stButton"] > button:focus-visible {
+    outline: 2px solid rgba(208, 184, 255, 0.85) !important;
+    outline-offset: 2px !important;
+}
+
+[data-testid="stButton"] > button:disabled {
+    background: #262130 !important;
+    background-color: #262130 !important;
+    color: #aaa1b7 !important;
+    -webkit-text-fill-color: #aaa1b7 !important;
+    border-color: rgba(190, 167, 235, 0.16) !important;
+}
+
+[data-testid="stBaseButton-primary"] {
+    background: linear-gradient(135deg, #745ca8, #8c6fbd) !important;
+    background-color: #745ca8 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border-color: rgba(255,255,255,.18) !important;
+}
+
+[data-testid="stBaseButton-primary"]:hover {
+    background: linear-gradient(135deg, #8469bb, #9b7fd0) !important;
+    background-color: #8469bb !important;
+}
+
+/* The Pick / Unpick buttons need slightly tighter typography on phones. */
+.st-key-tarot_card_grid [data-testid="stButton"] > button {
+    min-height: 42px !important;
+    padding: 0.35rem 0.45rem !important;
+    font-size: 0.88rem !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+}
+
+/* Dedicated setup container: make paired rows truly equal and aligned. */
+.st-key-tarot_setup_form {
+    width: 100% !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stHorizontalBlock"] {
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    margin-bottom: 0.65rem !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+.st-key-tarot_setup_form [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+    flex: 1 1 0 !important;
+    width: 0 !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stTextInput"],
+.st-key-tarot_setup_form [data-testid="stDateInput"],
+.st-key-tarot_setup_form [data-testid="stSelectbox"] {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stWidgetLabel"] {
+    height: 1.55rem !important;
+    min-height: 1.55rem !important;
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 0 0.35rem 0 !important;
+    padding: 0 !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stTextInput"] input,
+.st-key-tarot_setup_form [data-testid="stDateInput"] input,
+.st-key-tarot_setup_form [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+    height: 54px !important;
+    min-height: 54px !important;
+    max-height: 54px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    border-radius: 12px !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stSelectbox"] [data-baseweb="select"] {
+    width: 100% !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+    display: flex !important;
+    align-items: center !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stTextInput"] input,
+.st-key-tarot_setup_form [data-testid="stDateInput"] input {
+    background: #f7f8fc !important;
+    color: #171222 !important;
+    -webkit-text-fill-color: #171222 !important;
+    opacity: 1 !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stTextInput"] input::placeholder {
+    color: #5f6470 !important;
+    -webkit-text-fill-color: #5f6470 !important;
+    opacity: 1 !important;
+}
+
+/* Keep the category/spread values and dropdown chevrons centered and readable. */
+.st-key-tarot_setup_form [data-testid="stSelectbox"] [data-baseweb="select"] span,
+.st-key-tarot_setup_form [data-testid="stSelectbox"] [data-baseweb="select"] div {
+    color: #171222 !important;
+    -webkit-text-fill-color: #171222 !important;
+    opacity: 1 !important;
+}
+
+@media (max-width: 700px) {
+    .st-key-tarot_setup_form [data-testid="stHorizontalBlock"] {
+        gap: 0.6rem !important;
+        margin-bottom: 0.55rem !important;
+    }
+
+    .st-key-tarot_setup_form [data-testid="stWidgetLabel"] {
+        font-size: 0.88rem !important;
+        height: 1.45rem !important;
+        min-height: 1.45rem !important;
+    }
+
+    .st-key-tarot_setup_form [data-testid="stTextInput"] input,
+    .st-key-tarot_setup_form [data-testid="stDateInput"] input,
+    .st-key-tarot_setup_form [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+        height: 50px !important;
+        min-height: 50px !important;
+        max-height: 50px !important;
+    }
+
+    .st-key-tarot_card_grid [data-testid="stButton"] > button {
+        min-height: 40px !important;
+        font-size: 0.82rem !important;
+        padding-left: 0.2rem !important;
+        padding-right: 0.2rem !important;
+    }
+
+    /* Keep main action buttons easy to tap and readable. */
+    [data-testid="stButton"] > button {
+        min-height: 46px !important;
+        font-size: 0.92rem !important;
+    }
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -2603,54 +2781,57 @@ if (
 
     st.markdown("## 🃏 Tarot Reading")
 
-    col1, col2 = st.columns(2)
+    setup_fields = st.container(key="tarot_setup_form")
 
-    with col1:
+    with setup_fields:
 
-        st.session_state.name = st.text_input(
-            "Your name",
-            value=(
-                st.session_state.name
-            ),
-            placeholder="Enter your name",
-        )
+        col1, col2 = st.columns(2, gap="medium")
 
-    with col2:
+        with col1:
 
-        st.session_state.birthday = st.date_input(
-            "Your birthday",
-            value=(
-                st.session_state.birthday
-                or date(1990, 1, 1)
-            ),
-            min_value=date(1900, 1, 1),
-            max_value=date.today(),
-        )
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        st.session_state.category = (
-            st.selectbox(
-                "Reading category",
-                list(
-                    CATEGORIES.keys()
+            st.session_state.name = st.text_input(
+                "Your name",
+                value=(
+                    st.session_state.name
                 ),
+                placeholder="Enter your name",
             )
-        )
 
-    with col2:
+        with col2:
 
-        st.session_state.spread = (
-            st.selectbox(
-                "Spread",
-                list(
-                    SPREADS.keys()
+            st.session_state.birthday = st.date_input(
+                "Your birthday",
+                value=(
+                    st.session_state.birthday
+                    or date(1990, 1, 1)
                 ),
-                help="Choose how many cards you want and what each position means.",
+                min_value=date(1900, 1, 1),
+                max_value=date.today(),
             )
-        )
+
+        col1, col2 = st.columns(2, gap="medium")
+
+        with col1:
+
+            st.session_state.category = (
+                st.selectbox(
+                    "Reading category",
+                    list(
+                        CATEGORIES.keys()
+                    ),
+                )
+            )
+
+        with col2:
+
+            st.session_state.spread = (
+                st.selectbox(
+                    "Spread",
+                    list(
+                        SPREADS.keys()
+                    ),
+                )
+            )
 
     spread_info = SPREAD_DESCRIPTIONS[
         st.session_state.spread

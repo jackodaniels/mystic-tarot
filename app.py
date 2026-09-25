@@ -2003,38 +2003,82 @@ header {
     opacity: 1 !important;
 }
 
-/* Visible category/spread choices: avoid dropdowns and improve mobile touch targets. */
+/* Visible category/spread choices: high-contrast tap targets on desktop and mobile. */
 .st-key-tarot_setup_form [data-testid="stRadio"] {
-    margin-bottom: 0.55rem !important;
+    margin: 0 0 0.8rem 0 !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stRadio"] [data-testid="stWidgetLabel"],
+.st-key-tarot_setup_form [data-testid="stRadio"] [data-testid="stWidgetLabel"] *,
+.st-key-tarot_setup_form [data-testid="stRadio"] [data-testid="stWidgetLabel"] p {
+    color: #f8f6ff !important;
+    -webkit-text-fill-color: #f8f6ff !important;
+    opacity: 1 !important;
+    font-weight: 800 !important;
 }
 
 .st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] {
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 0.45rem 0.5rem !important;
+    gap: 0.5rem !important;
     align-items: stretch !important;
+    width: 100% !important;
 }
 
 .st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label {
-    flex: 1 1 auto !important;
-    min-width: 120px !important;
+    flex: 1 1 150px !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
     margin: 0 !important;
-    padding: 0.65rem 0.8rem !important;
-    border: 1px solid rgba(182, 156, 255, 0.28) !important;
+    padding: 0.7rem 0.85rem !important;
+    border: 1px solid rgba(182, 156, 255, 0.55) !important;
     border-radius: 12px !important;
-    background: rgba(28, 18, 49, 0.72) !important;
-    color: #f5f2ff !important;
+    background: #24183b !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    box-sizing: border-box !important;
 }
 
-.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label span {
-    color: #f5f2ff !important;
-    -webkit-text-fill-color: #f5f2ff !important;
+/* Streamlit may place the visible option text in span, p, or div nodes. */
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label,
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label *,
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label p,
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label span,
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label div {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    opacity: 1 !important;
 }
 
 .st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
-    border-color: #a98cff !important;
-    background: rgba(116, 92, 168, 0.34) !important;
-    box-shadow: 0 0 0 1px rgba(169, 140, 255, 0.25) !important;
+    border-color: #d5c2ff !important;
+    background: linear-gradient(135deg, #745ca8, #5e468e) !important;
+    box-shadow: 0 0 0 2px rgba(213, 194, 255, 0.2) !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label:hover {
+    border-color: #cbb5ff !important;
+    background: #32234f !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stRadio"] input[type="radio"] {
+    accent-color: #cbb5ff !important;
+}
+
+@media (max-width: 700px) {
+    .st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .st-key-tarot_setup_form [data-testid="stRadio"] [role="radiogroup"] > label {
+        width: 100% !important;
+        min-height: 50px !important;
+        padding: 0.7rem 0.55rem !important;
+        font-size: 0.88rem !important;
+        line-height: 1.15 !important;
+        text-align: center !important;
+    }
 }
 
 /* Keep the category/spread values and dropdown chevrons centered and readable. */

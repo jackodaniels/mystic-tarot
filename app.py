@@ -1689,6 +1689,40 @@ header {
         height: auto !important;
     }
 
+    .st-key-tarot_selection_info .choice-box {
+        width: 100%;
+        min-height: 78px;
+        box-sizing: border-box;
+        padding: 0.65rem 0.75rem;
+        border: 1px solid rgba(116, 92, 168, 0.45);
+        border-radius: 12px;
+        background: #f7f8fc;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .st-key-tarot_selection_info .choice-label {
+        color: #5f6470;
+        font-size: 0.78rem;
+        line-height: 1.1;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+
+    .st-key-tarot_selection_info .choice-value {
+        color: #171222;
+        -webkit-text-fill-color: #171222;
+        font-size: 1rem;
+        line-height: 1.2;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
     .st-key-tarot_selection_info {
         width: 100% !important;
         margin: 0.25rem 0 0.65rem 0 !important;
@@ -2014,14 +2048,17 @@ header {
         gap: 0.45rem !important;
     }
 
-    .st-key-tarot_selection_info [data-testid="stVerticalBlockBorderWrapper"] {
-        min-height: 72px !important;
-        padding: 0.45rem !important;
+    .st-key-tarot_selection_info .choice-box {
+        min-height: 72px;
+        padding: 0.5rem 0.45rem;
     }
 
-    .st-key-tarot_selection_info [data-testid="stMarkdownContainer"] {
-        font-size: 0.88rem !important;
-        line-height: 1.2 !important;
+    .st-key-tarot_selection_info .choice-label {
+        font-size: 0.72rem;
+    }
+
+    .st-key-tarot_selection_info .choice-value {
+        font-size: 0.9rem;
     }
 
     .st-key-tarot_setup_form [data-testid="stHorizontalBlock"] {
@@ -2776,23 +2813,40 @@ if (
 
         with col1:
 
-            st.selectbox(
+            selected_category = st.selectbox(
                 "Reading category",
                 list(CATEGORIES.keys()),
+                index=(
+                    list(CATEGORIES.keys()).index(
+                        st.session_state.category
+                    )
+                    if st.session_state.category in CATEGORIES
+                    else 0
+                ),
                 key="tarot_category",
             )
 
         with col2:
 
-            st.selectbox(
+            selected_spread = st.selectbox(
                 "Spread",
                 list(SPREADS.keys()),
+                index=(
+                    list(SPREADS.keys()).index(
+                        st.session_state.spread
+                    )
+                    if st.session_state.spread in SPREADS
+                    else 1
+                ),
                 key="tarot_spread",
             )
 
-        # Keep simple session-state aliases for the rest of the app.
-        st.session_state.category = st.session_state.tarot_category
-        st.session_state.spread = st.session_state.tarot_spread
+        # Explicitly persist the values returned by the widgets.
+        # Do not rely on widget keys alone when moving between phases.
+        st.session_state.category = selected_category
+        st.session_state.spread = selected_spread
+        st.session_state.tarot_category = selected_category
+        st.session_state.tarot_spread = selected_spread
 
     spread_info = SPREAD_DESCRIPTIONS[
         st.session_state.spread
@@ -2885,11 +2939,6 @@ if (
         )
 
     st.write("")
-
-    st.caption(
-        "🔐 Each Tarot category can be generated only once per browser session. "
-        "You can choose another category after completing a reading."
-    )
 
     if st.button(
         "✨ Start & Shuffle the Deck",
@@ -3097,27 +3146,49 @@ elif (
         f"Selected: {selected_cards} / {required_cards}"
     )
 
-    # Show the exact choices from the setup screen in simple,
-    # non-editable display boxes. Using native bordered containers here
-    # avoids Streamlit widget state issues and guarantees the selected
-    # values remain visible across reruns on mobile.
+    # Show the exact selections as explicit read-only boxes.
+    # They are rendered from session state rather than widgets, so the
+    # selected values remain visible after shuffle and card-selection reruns.
+    selected_category = st.session_state.get(
+        "category",
+        st.session_state.get("tarot_category", "💼 Career"),
+    )
+    selected_spread = st.session_state.get(
+        "spread",
+        st.session_state.get("tarot_spread", "3 Cards"),
+    )
+
+    # Keep all aliases synchronized.
+    st.session_state.category = selected_category
+    st.session_state.spread = selected_spread
+    st.session_state.tarot_category = selected_category
+    st.session_state.tarot_spread = selected_spread
+
     selection_info = st.container(key="tarot_selection_info")
     with selection_info:
         info_col1, info_col2 = st.columns(2, gap="small")
 
         with info_col1:
-            with st.container(border=True):
-                st.caption("Reading category")
-                st.markdown(
-                    f"**{st.session_state.category}**"
-                )
+            st.markdown(
+                f"""
+                <div class=\"choice-box\">
+                    <div class=\"choice-label\">Reading category</div>
+                    <div class=\"choice-value\">{selected_category}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
         with info_col2:
-            with st.container(border=True):
-                st.caption("Spread")
-                st.markdown(
-                    f"**{st.session_state.spread}**"
-                )
+            st.markdown(
+                f"""
+                <div class=\"choice-box\">
+                    <div class=\"choice-label\">Spread</div>
+                    <div class=\"choice-value\">{selected_spread}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
     card_back = get_card_back()
 

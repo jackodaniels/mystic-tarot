@@ -238,6 +238,7 @@ def get_card_image(card_name):
     return None
 
 
+@st.cache_data(show_spinner=False)
 def get_card_back():
     """Return a dedicated portrait Tarot card-back image only.
 
@@ -1682,6 +1683,40 @@ header {
     .st-key-tarot_result_grid [data-testid="stImage"],
     .st-key-tarot_result_grid img {
         max-width: 100% !important;
+        height: auto !important;
+    }
+
+    .st-key-tarot_selection_info {
+        width: 100% !important;
+        margin: 0.25rem 0 0.65rem 0 !important;
+    }
+
+    .st-key-tarot_selection_info [data-testid="stHorizontalBlock"] {
+        align-items: stretch !important;
+        gap: 0.6rem !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .st-key-tarot_selection_info [data-testid="stColumn"],
+    .st-key-tarot_selection_info div[data-testid="column"] {
+        min-width: 0 !important;
+    }
+
+    .st-key-tarot_selection_info [data-testid="stVerticalBlockBorderWrapper"] {
+        min-height: 78px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 0.6rem !important;
+    }
+
+    .st-key-tarot_selection_info [data-testid="stCaptionContainer"] {
+        margin-bottom: 0.1rem !important;
+    }
+
+    .st-key-tarot_selection_info [data-testid="stMarkdownContainer"] {
+        overflow-wrap: anywhere !important;
     }
 
     /* Make result card metadata readable and stable on narrow screens. */
@@ -1940,6 +1975,20 @@ header {
 }
 
 @media (max-width: 700px) {
+    .st-key-tarot_selection_info [data-testid="stHorizontalBlock"] {
+        gap: 0.45rem !important;
+    }
+
+    .st-key-tarot_selection_info [data-testid="stVerticalBlockBorderWrapper"] {
+        min-height: 72px !important;
+        padding: 0.45rem !important;
+    }
+
+    .st-key-tarot_selection_info [data-testid="stMarkdownContainer"] {
+        font-size: 0.88rem !important;
+        line-height: 1.2 !important;
+    }
+
     .st-key-tarot_setup_form [data-testid="stHorizontalBlock"] {
         gap: 0.6rem !important;
         margin-bottom: 0.55rem !important;
@@ -2514,117 +2563,21 @@ else:
 
 
 def render_static_card_back(card_back):
-    """Render a face-down card at the original portrait size."""
+    """Render a face-down card using native Streamlit for faster reruns."""
 
-    image_bytes = card_back.read_bytes()
-    image_b64 = base64.b64encode(image_bytes).decode("ascii")
-
-    ext = card_back.suffix.lower()
-    mime = {
-        ".png": "image/png",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".webp": "image/webp",
-    }.get(ext, "image/png")
-
-    html = f"""
-    <style>
-        * {{ box-sizing: border-box; }}
-        body {{ margin: 0; background: transparent; }}
-        .static-card-scene {{
-            width: 100%;
-            height: 208px;
-            padding: 2px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }}
-        .static-card-back {{
-            width: min(100%, 120px);
-            height: auto;
-            aspect-ratio: 120 / 198;
-            flex: 0 1 120px;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 2px solid rgba(201,168,106,.75);
-            box-shadow: 0 10px 24px rgba(0,0,0,.42);
-        }}
-        .static-card-back img {{
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }}
-    </style>
-    <div class="static-card-scene">
-        <div class="static-card-back">
-            <img src="data:{mime};base64,{image_b64}" alt="Berlin Tarot card back">
-        </div>
-    </div>
-    """
-
-    components.html(
-        html,
-        height=212,
-        scrolling=False,
+    st.image(
+        str(card_back),
+        width=120,
+        output_format="auto",
     )
 
 
 def render_result_card_image(image_path, alt_text):
-    """Render a result card at one consistent portrait size on desktop and mobile."""
+    """Render a result card with native Streamlit for faster page loads."""
 
-    image_bytes = image_path.read_bytes()
-    image_b64 = base64.b64encode(image_bytes).decode("ascii")
-    ext = image_path.suffix.lower()
-    mime = {
-        ".png": "image/png",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".webp": "image/webp",
-    }.get(ext, "image/jpeg")
-
-    html = f"""
-    <style>
-        * {{ box-sizing: border-box; }}
-        body {{ margin:0; background:transparent; }}
-        .result-scene {{
-            width:100%;
-            height:206px;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            overflow:hidden;
-        }}
-        .result-card {{
-            width:min(100%, 120px);
-            height:auto;
-            aspect-ratio:120 / 198;
-            flex:0 1 120px;
-            border-radius:10px;
-            overflow:hidden;
-            border:2px solid rgba(201,168,106,.75);
-            box-shadow:0 10px 24px rgba(0,0,0,.42);
-            background:#120a20;
-        }}
-        .result-card img {{
-            width:100%;
-            height:100%;
-            object-fit:cover;
-            display:block;
-        }}
-    </style>
-    <div class="result-scene">
-        <div class="result-card">
-            <img src="data:{mime};base64,{image_b64}" alt="{alt_text}">
-        </div>
-    </div>
-    """
-
-    components.html(
-        html,
-        height=210,
-        scrolling=False,
+    st.image(
+        str(image_path),
+        width=120,
     )
 
 
@@ -3151,6 +3104,22 @@ elif (
         f"Selected: {selected_cards} / {required_cards}"
     )
 
+    # Read-only summary of the choices made on the setup screen.
+    # These stay aligned and preserve the user's selected values across reruns.
+    selection_info = st.container(key="tarot_selection_info")
+    with selection_info:
+        info_col1, info_col2 = st.columns(2, gap="small")
+
+        with info_col1:
+            with st.container(border=True):
+                st.caption("Reading category")
+                st.markdown(f"**{st.session_state.category}**")
+
+        with info_col2:
+            with st.container(border=True):
+                st.caption("Spread")
+                st.markdown(f"**{st.session_state.spread}**")
+
     card_back = get_card_back()
 
     if card_back is None:
@@ -3333,84 +3302,50 @@ elif (
 
     pool = st.session_state.pool
 
-    st.markdown("### 🃏 Your selected cards")
-    st.caption("Your selected cards have been flipped in place. The other cards remain face-down.")
+    st.markdown("### 🃏 Selected Cards")
+    st.caption("Only the cards you selected are shown below.")
 
-    # Keep the result cards in a readable grid.
-    # Desktop: 4 columns. Mobile: the CSS above reduces this to 2 columns.
+    selected_reading = [
+        card
+        for card in cards
+    ]
+
+    # Show only selected cards. Desktop uses 4 columns; the mobile CSS
+    # reduces this keyed grid to 2 columns for readability.
     result_grid = st.container(key="tarot_result_grid")
 
     with result_grid:
+        for row_start in range(0, len(selected_reading), 4):
 
-        for row_start in range(0, len(pool), 4):
-
-            row = pool[row_start:row_start + 4]
+            row = selected_reading[row_start:row_start + 4]
             columns = st.columns(4, gap="small")
 
-            for number, (column, card_index) in enumerate(
-                zip(columns, row),
-                start=row_start + 1,
-            ):
+            for column, card in zip(columns, row):
 
                 with column:
+                    image_path = get_card_image(card["name"])
 
-                    revealed = card_index in revealed_by_index
+                    with st.container(border=True):
 
-                    if revealed:
+                        st.caption(card["position"])
 
-                        card = revealed_by_index[card_index]
-                        image_path = get_card_image(card["name"])
-
-                        with st.container(border=True):
-
-                            st.caption(f"Card {number}")
-
-                            if image_path:
-
-                                # Always show the physical Tarot artwork upright.
-                                # Reversed is indicated by the orientation label and
-                                # uses the reversed meaning from the deck data.
-                                render_result_card_image(
-                                    image_path,
-                                    card["name"],
-                                )
-
-                            else:
-
-                                st.warning(
-                                    f"Image unavailable for {card['name']}"
-                                )
-
-                            st.markdown(
-                                f"**{card['name']}**"
+                        if image_path:
+                            render_result_card_image(
+                                image_path,
+                                card["name"],
+                            )
+                        else:
+                            st.warning(
+                                f"Image unavailable for {card['name']}"
                             )
 
-                            st.caption(
-                                f"✦ {card['orientation']} ✦"
-                            )
+                        st.markdown(
+                            f"**{card['name']}**"
+                        )
 
-                    else:
-
-                        with st.container(border=True):
-
-                            st.caption(f"Card {number}")
-
-                            card_back_result = get_card_back()
-
-                            if card_back_result:
-
-                                render_result_card_image(
-                                    card_back_result,
-                                    "Berlin Tarot card back",
-                                )
-
-                            else:
-
-                                st.warning(
-                                    "Card back unavailable."
-                                )
-
-                            st.caption("Face-down")
+                        st.caption(
+                            f"✦ {card['orientation']} ✦"
+                        )
 
     # ========================================================
     # INTERPRETATION

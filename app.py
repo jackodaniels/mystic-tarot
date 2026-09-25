@@ -696,6 +696,14 @@ def initialize_session():
         "spread":
             "3 Cards",
 
+        # Widget-backed values keep the user's selected options stable
+        # across Streamlit reruns and phase changes.
+        "tarot_category":
+            "💼 Career",
+
+        "tarot_spread":
+            "3 Cards",
+
         "name":
             "",
 
@@ -1969,6 +1977,22 @@ header {
     opacity: 1 !important;
 }
 
+/* Selected category / spread display: aligned, readable, non-editable. */
+.st-key-tarot_selection_info [data-testid="stTextInput"] input {
+    background: #f7f8fc !important;
+    color: #171222 !important;
+    -webkit-text-fill-color: #171222 !important;
+    opacity: 1 !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    min-height: 50px !important;
+}
+
+.st-key-tarot_selection_info [data-testid="stTextInput"] label {
+    color: #efe8ff !important;
+    font-weight: 700 !important;
+}
+
 @media (max-width: 700px) {
     .st-key-tarot_selection_info [data-testid="stHorizontalBlock"] {
         gap: 0.45rem !important;
@@ -2736,25 +2760,23 @@ if (
 
         with col1:
 
-            st.session_state.category = (
-                st.selectbox(
-                    "Reading category",
-                    list(
-                        CATEGORIES.keys()
-                    ),
-                )
+            st.selectbox(
+                "Reading category",
+                list(CATEGORIES.keys()),
+                key="tarot_category",
             )
 
         with col2:
 
-            st.session_state.spread = (
-                st.selectbox(
-                    "Spread",
-                    list(
-                        SPREADS.keys()
-                    ),
-                )
+            st.selectbox(
+                "Spread",
+                list(SPREADS.keys()),
+                key="tarot_spread",
             )
+
+        # Keep simple session-state aliases for the rest of the app.
+        st.session_state.category = st.session_state.tarot_category
+        st.session_state.spread = st.session_state.tarot_spread
 
     spread_info = SPREAD_DESCRIPTIONS[
         st.session_state.spread
@@ -3059,21 +3081,27 @@ elif (
         f"Selected: {selected_cards} / {required_cards}"
     )
 
-    # Read-only summary of the choices made on the setup screen.
-    # These stay aligned and preserve the user's selected values across reruns.
+    # Show exactly what the user selected on the setup screen.
+    # Native text fields make the values consistently visible on mobile.
     selection_info = st.container(key="tarot_selection_info")
     with selection_info:
         info_col1, info_col2 = st.columns(2, gap="small")
 
         with info_col1:
-            with st.container(border=True):
-                st.caption("Reading category")
-                st.markdown(f"**{st.session_state.category}**")
+            st.text_input(
+                "Reading category",
+                value=str(st.session_state.category),
+                disabled=True,
+                key=f"selected_category_display_{st.session_state.category}",
+            )
 
         with info_col2:
-            with st.container(border=True):
-                st.caption("Spread")
-                st.markdown(f"**{st.session_state.spread}**")
+            st.text_input(
+                "Spread",
+                value=str(st.session_state.spread),
+                disabled=True,
+                key=f"selected_spread_display_{st.session_state.spread}",
+            )
 
     card_back = get_card_back()
 

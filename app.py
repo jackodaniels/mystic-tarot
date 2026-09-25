@@ -711,11 +711,6 @@ def initialize_session():
         "error":
             "",
 
-        # Tarot categories that have already produced a completed reading
-        # during this browser session. A category may be used only once.
-        "tarot_used_categories":
-            [],
-
     }
 
     for key, value in defaults.items():
@@ -2033,20 +2028,6 @@ header {
 
 def start_tarot():
 
-    # Only one completed Tarot reading is allowed per category per
-    # browser session. Users can still reshuffle the same pending
-    # reading before they reveal it.
-    category = st.session_state.category
-
-    if category in st.session_state.tarot_used_categories:
-
-        st.session_state.error = (
-            f"Only one Tarot reading is allowed for {category} "
-            "in this session. Please choose another category."
-        )
-
-        return
-
     question = (
         st.session_state.question
         .strip()
@@ -2208,11 +2189,6 @@ def reveal_tarot():
 
     st.session_state.reading = reading
 
-    category = st.session_state.category
-
-    if category not in st.session_state.tarot_used_categories:
-        st.session_state.tarot_used_categories.append(category)
-
     st.session_state.phase = "tarot_result"
 
 
@@ -2227,12 +2203,6 @@ def redraw_same_tarot():
     st.session_state.reading = []
     st.session_state.error = ""
     st.session_state.phase = "tarot_shuffle"
-
-
-def back_to_tarot_selection():
-    """Return to the same 8-card pool so the user can change selections."""
-    st.session_state.error = ""
-    st.session_state.phase = "tarot_select"
 
 
 # ============================================================
@@ -2588,11 +2558,10 @@ def render_flip_card(
     orientation,
     number,
 ):
-    """Render a responsive 3D flip card. The front is shown after selection."""
+    """Render a selected Tarot card with a visible back-to-front animation."""
 
     back_bytes = card_back.read_bytes()
     back_b64 = base64.b64encode(back_bytes).decode("ascii")
-
     back_ext = card_back.suffix.lower()
     back_mime = {
         ".png": "image/png",
@@ -2603,7 +2572,6 @@ def render_flip_card(
 
     front_bytes = card_image.read_bytes()
     front_b64 = base64.b64encode(front_bytes).decode("ascii")
-
     front_ext = card_image.suffix.lower()
     front_mime = {
         ".png": "image/png",
@@ -2612,17 +2580,13 @@ def render_flip_card(
         ".webp": "image/webp",
     }.get(front_ext, "image/jpeg")
 
-    # Keep the artwork upright. "Reversed" is represented by the
-    # orientation label/meaning rather than rotating the source artwork.
-    rotation = "none"
-
     html = f"""
     <style>
         * {{ box-sizing: border-box; }}
         body {{ margin:0; background:transparent; }}
         .scene {{
             width:100%;
-            height:208px;
+            height:212px;
             padding:4px;
             perspective:1100px;
             display:flex;
@@ -2631,14 +2595,15 @@ def render_flip_card(
             overflow:hidden;
         }}
         .card {{
-            width:min(100%, 120px);
-            height:auto;
-            aspect-ratio:120 / 198;
-            flex:0 1 120px;
+            width:120px;
+            height:198px;
             position:relative;
             transform-style:preserve-3d;
-            transform:rotateY(360deg);
-            animation:flipIn .75s cubic-bezier(.2,.75,.2,1) both;
+            transform:rotateY(0deg);
+            transition:transform 900ms cubic-bezier(.22,.75,.2,1);
+        }}
+        .card.flipped {{
+            transform:rotateY(180deg);
         }}
         .face {{
             position:absolute;
@@ -2657,19 +2622,17 @@ def render_flip_card(
             object-fit:cover;
             display:block;
         }}
-        /* Back is the visible face before the flip. */
         .back {{ transform:rotateY(0deg); }}
-        /* Tarot face is hidden on the back side until the card flips. */
         .front {{ transform:rotateY(180deg); }}
         .front img {{ transform:none; }}
-        @keyframes flipIn {{
-            from {{ transform:rotateY(0deg); }}
-            to {{ transform:rotateY(180deg); }}
+        @media (max-width:430px) {{
+            .scene {{ height:178px; }}
+            .card {{ width:100px; height:165px; }}
         }}
     </style>
 
     <div class="scene">
-        <div class="card">
+        <div class="card" id="tarot-card-{number}">
             <div class="face front">
                 <img src="data:{front_mime};base64,{front_b64}" alt="{card_name}">
             </div>
@@ -2678,11 +2641,18 @@ def render_flip_card(
             </div>
         </div>
     </div>
+
+    <script>
+        setTimeout(function() {{
+            var card = document.getElementById('tarot-card-{number}');
+            if (card) card.classList.add('flipped');
+        }}, 80);
+    </script>
     """
 
     components.html(
         html,
-        height=212,
+        height=216 if not st.session_state.get('is_mobile_hint', False) else 182,
         scrolling=False,
     )
 
@@ -2789,21 +2759,6 @@ if (
     spread_info = SPREAD_DESCRIPTIONS[
         st.session_state.spread
     ]
-
-    used_categories = st.session_state.tarot_used_categories
-
-    if used_categories:
-        st.info(
-            "🔒 Categories already used in this session: "
-            + ", ".join(used_categories)
-            + ". Each category can be generated only once."
-        )
-
-    if st.session_state.category in used_categories:
-        st.warning(
-            f"{st.session_state.category} has already been generated. "
-            "Choose another category to create a new Tarot reading."
-        )
 
     with st.container(border=True):
         st.markdown(
@@ -3391,23 +3346,12 @@ elif (
     # READING ACTIONS
     # ========================================================
 
-    action1, action2 = st.columns(2)
-
-    with action1:
-        if st.button(
-            "↩ Change My Cards",
-            use_container_width=True,
-        ):
-            back_to_tarot_selection()
-            st.rerun()
-
-    with action2:
-        if st.button(
-            "🔄 Choose Another Category",
-            use_container_width=True,
-        ):
-            reset_app()
-            st.rerun()
+    if st.button(
+        "🔄 Start Another Reading",
+        use_container_width=True,
+    ):
+        reset_app()
+        st.rerun()
 
     st.divider()
 

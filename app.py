@@ -1930,6 +1930,30 @@ header {
     overflow: hidden !important;
 }
 
+/* Visible, high-contrast setup choice buttons. */
+.st-key-tarot_setup_form [data-testid="stButton"] > button {
+    min-height: 52px !important;
+    height: 52px !important;
+    margin: 0 !important;
+    padding: 0.55rem 0.65rem !important;
+    white-space: normal !important;
+    line-height: 1.15 !important;
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.st-key-tarot_setup_form [data-testid="stButton"] > button p,
+.st-key-tarot_setup_form [data-testid="stButton"] > button span,
+.st-key-tarot_setup_form [data-testid="stButton"] > button div {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    opacity: 1 !important;
+}
+
 /* Dedicated setup container: make paired rows truly equal and aligned. */
 .st-key-tarot_setup_form {
     width: 100% !important;
@@ -2818,32 +2842,31 @@ def render_flip_card(
 
 if st.session_state.phase == "setup":
 
-    mode = st.radio(
-        "Choose your reading",
-        [
-            "🃏 Tarot Reading",
-            "🌙 Horoscope",
-        ],
-        horizontal=True,
-        index=(
-            0
-            if st.session_state.mode
-            == "Tarot Reading"
-            else 1
-        ),
-    )
+    st.markdown("### Choose your reading")
 
-    if mode == "🃏 Tarot Reading":
+    mode_col1, mode_col2 = st.columns(2, gap="small")
 
-        st.session_state.mode = (
-            "Tarot Reading"
-        )
+    with mode_col1:
+        tarot_selected = st.session_state.mode == "Tarot Reading"
+        if st.button(
+            ("✓ " if tarot_selected else "") + "🃏 Tarot Reading",
+            key="mode_tarot_button",
+            type="primary" if tarot_selected else "secondary",
+            use_container_width=True,
+        ):
+            st.session_state.mode = "Tarot Reading"
+            st.rerun()
 
-    else:
-
-        st.session_state.mode = (
-            "Horoscope"
-        )
+    with mode_col2:
+        horoscope_selected = st.session_state.mode == "Horoscope"
+        if st.button(
+            ("✓ " if horoscope_selected else "") + "🌙 Horoscope",
+            key="mode_horoscope_button",
+            type="primary" if horoscope_selected else "secondary",
+            use_container_width=True,
+        ):
+            st.session_state.mode = "Horoscope"
+            st.rerun()
 
 
 # ============================================================
@@ -2887,43 +2910,47 @@ if (
                 max_value=date.today(),
             )
 
-        # Use visible radio choices instead of dropdowns.
-        # This keeps all options visible and is much easier to use on phones.
+        # Use real Streamlit buttons instead of radio inputs.
+        # Native buttons render reliably on mobile and let us guarantee
+        # high-contrast, readable labels on every device.
         category_options = list(CATEGORIES.keys())
         spread_options = list(SPREADS.keys())
 
-        category_index = (
-            category_options.index(st.session_state.category)
-            if st.session_state.category in category_options
-            else 0
-        )
+        st.markdown("#### Reading category")
 
-        spread_index = (
-            spread_options.index(st.session_state.spread)
-            if st.session_state.spread in spread_options
-            else 1
-        )
+        for row_start in range(0, len(category_options), 2):
+            row_options = category_options[row_start:row_start + 2]
+            cat_cols = st.columns(2, gap="small")
 
-        selected_category = st.radio(
-            "Reading category",
-            category_options,
-            index=category_index,
-            key="tarot_category",
-            horizontal=True,
-        )
+            for col, option in zip(cat_cols, row_options):
+                with col:
+                    is_selected = st.session_state.category == option
+                    if st.button(
+                        ("✓ " if is_selected else "") + option,
+                        key=f"category_choice_{row_start}_{option}",
+                        type="primary" if is_selected else "secondary",
+                        use_container_width=True,
+                    ):
+                        st.session_state.category = option
+                        st.rerun()
 
-        selected_spread = st.radio(
-            "Spread",
-            spread_options,
-            index=spread_index,
-            key="tarot_spread",
-            horizontal=True,
-        )
+        st.markdown("#### Spread")
 
-        # Persist the selected values in app state. We intentionally do not
-        # modify the widget keys after their widgets have been created.
-        st.session_state.category = selected_category
-        st.session_state.spread = selected_spread
+        for row_start in range(0, len(spread_options), 2):
+            row_options = spread_options[row_start:row_start + 2]
+            spread_cols = st.columns(2, gap="small")
+
+            for col, option in zip(spread_cols, row_options):
+                with col:
+                    is_selected = st.session_state.spread == option
+                    if st.button(
+                        ("✓ " if is_selected else "") + option,
+                        key=f"spread_choice_{row_start}_{option}",
+                        type="primary" if is_selected else "secondary",
+                        use_container_width=True,
+                    ):
+                        st.session_state.spread = option
+                        st.rerun()
 
     spread_info = SPREAD_DESCRIPTIONS[
         st.session_state.spread

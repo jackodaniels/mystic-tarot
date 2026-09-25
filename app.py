@@ -2841,12 +2841,11 @@ if (
                 key="tarot_spread",
             )
 
-        # Explicitly persist the values returned by the widgets.
-        # Do not rely on widget keys alone when moving between phases.
+        # Persist the selected values in app state.
+        # Do not write back to the widget keys after the widgets are created;
+        # Streamlit forbids modifying a keyed widget after instantiation.
         st.session_state.category = selected_category
         st.session_state.spread = selected_spread
-        st.session_state.tarot_category = selected_category
-        st.session_state.tarot_spread = selected_spread
 
     spread_info = SPREAD_DESCRIPTIONS[
         st.session_state.spread

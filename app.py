@@ -1978,19 +1978,35 @@ header {
 }
 
 /* Selected category / spread display: aligned, readable, non-editable. */
-.st-key-tarot_selection_info [data-testid="stTextInput"] input {
+.st-key-tarot_selection_info [data-testid="stVerticalBlockBorderWrapper"] {
     background: #f7f8fc !important;
-    color: #171222 !important;
-    -webkit-text-fill-color: #171222 !important;
-    opacity: 1 !important;
-    font-weight: 700 !important;
+    border: 1px solid rgba(116, 92, 168, 0.45) !important;
     border-radius: 12px !important;
-    min-height: 50px !important;
+    min-height: 76px !important;
+    box-sizing: border-box !important;
+    padding: 0.5rem 0.75rem !important;
+    display: flex !important;
+    justify-content: center !important;
 }
 
-.st-key-tarot_selection_info [data-testid="stTextInput"] label {
-    color: #efe8ff !important;
+.st-key-tarot_selection_info [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] {
+    margin: 0 !important;
+    color: #5f6470 !important;
+    font-size: 0.78rem !important;
     font-weight: 700 !important;
+}
+
+.st-key-tarot_selection_info [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stMarkdownContainer"] {
+    color: #171222 !important;
+    margin: 0 !important;
+    line-height: 1.25 !important;
+    overflow-wrap: anywhere !important;
+}
+
+.st-key-tarot_selection_info [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stMarkdownContainer"] p {
+    color: #171222 !important;
+    margin: 0 !important;
+    font-weight: 800 !important;
 }
 
 @media (max-width: 700px) {
@@ -3081,27 +3097,27 @@ elif (
         f"Selected: {selected_cards} / {required_cards}"
     )
 
-    # Show exactly what the user selected on the setup screen.
-    # Native text fields make the values consistently visible on mobile.
+    # Show the exact choices from the setup screen in simple,
+    # non-editable display boxes. Using native bordered containers here
+    # avoids Streamlit widget state issues and guarantees the selected
+    # values remain visible across reruns on mobile.
     selection_info = st.container(key="tarot_selection_info")
     with selection_info:
         info_col1, info_col2 = st.columns(2, gap="small")
 
         with info_col1:
-            st.text_input(
-                "Reading category",
-                value=str(st.session_state.category),
-                disabled=True,
-                key=f"selected_category_display_{st.session_state.category}",
-            )
+            with st.container(border=True):
+                st.caption("Reading category")
+                st.markdown(
+                    f"**{st.session_state.category}**"
+                )
 
         with info_col2:
-            st.text_input(
-                "Spread",
-                value=str(st.session_state.spread),
-                disabled=True,
-                key=f"selected_spread_display_{st.session_state.spread}",
-            )
+            with st.container(border=True):
+                st.caption("Spread")
+                st.markdown(
+                    f"**{st.session_state.spread}**"
+                )
 
     card_back = get_card_back()
 

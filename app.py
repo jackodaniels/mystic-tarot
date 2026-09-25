@@ -719,6 +719,9 @@ def initialize_session():
         "error":
             "",
 
+        "show_mode_choices":
+            False,
+
     }
 
     for key, value in defaults.items():
@@ -2842,31 +2845,57 @@ def render_flip_card(
 
 if st.session_state.phase == "setup":
 
-    st.markdown("### Choose your reading")
+    # Separate mobile-friendly button for choosing the reading type.
+    # The actual Tarot/Horoscope choices appear only after tapping it.
+    if st.button(
+        "🎴 Choose Your Reading",
+        key="choose_reading_button",
+        type="secondary",
+        use_container_width=True,
+    ):
+        st.session_state.show_mode_choices = not st.session_state.get(
+            "show_mode_choices",
+            False,
+        )
+        st.rerun()
 
-    mode_col1, mode_col2 = st.columns(2, gap="small")
+    current_mode_label = (
+        "🃏 Tarot Reading"
+        if st.session_state.mode == "Tarot Reading"
+        else "🌙 Horoscope"
+    )
 
-    with mode_col1:
-        tarot_selected = st.session_state.mode == "Tarot Reading"
-        if st.button(
-            ("✓ " if tarot_selected else "") + "🃏 Tarot Reading",
-            key="mode_tarot_button",
-            type="primary" if tarot_selected else "secondary",
-            use_container_width=True,
-        ):
-            st.session_state.mode = "Tarot Reading"
-            st.rerun()
+    st.caption(f"Selected: {current_mode_label}")
 
-    with mode_col2:
-        horoscope_selected = st.session_state.mode == "Horoscope"
-        if st.button(
-            ("✓ " if horoscope_selected else "") + "🌙 Horoscope",
-            key="mode_horoscope_button",
-            type="primary" if horoscope_selected else "secondary",
-            use_container_width=True,
-        ):
-            st.session_state.mode = "Horoscope"
-            st.rerun()
+    if st.session_state.get("show_mode_choices", False):
+
+        st.markdown("**Choose a reading type:**")
+
+        mode_col1, mode_col2 = st.columns(2, gap="small")
+
+        with mode_col1:
+            tarot_selected = st.session_state.mode == "Tarot Reading"
+            if st.button(
+                ("✓ " if tarot_selected else "") + "🃏 Tarot Reading",
+                key="mode_tarot_button",
+                type="primary" if tarot_selected else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state.mode = "Tarot Reading"
+                st.session_state.show_mode_choices = False
+                st.rerun()
+
+        with mode_col2:
+            horoscope_selected = st.session_state.mode == "Horoscope"
+            if st.button(
+                ("✓ " if horoscope_selected else "") + "🌙 Horoscope",
+                key="mode_horoscope_button",
+                type="primary" if horoscope_selected else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state.mode = "Horoscope"
+                st.session_state.show_mode_choices = False
+                st.rerun()
 
 
 # ============================================================
